@@ -1,0 +1,57 @@
+[
+  {
+    "sectionId": "data-observability",
+    "sectionTitle": "Data Observability & Monitoring",
+    "category": "Data Management",
+    "totalQuestions": 18,
+    "completedQuestions": 5,
+    "averageScore": 45,
+    "isCritical": true,
+    "performanceLevel": "needs-improvement",
+    "completionRate": 28
+  },
+  {
+    "sectionId": "data-quality",
+    "sectionTitle": "Data Quality Assurance & Validation",
+    "category": "Data Management",
+    "totalQuestions": 18,
+    "completedQuestions": 14,
+    "averageScore": 75,
+    "isCritical": false,
+    "performanceLevel": "good",
+    "completionRate": 78
+  },
+  {
+    "sectionId": "data-lineage",
+    "sectionTitle": "Data Lineage & Provenance Tracking",
+    "category": "Data Management",
+    "totalQuestions": 18,
+    "completedQuestions": 10,
+    "averageScore": 60,
+    "isCritical": true,
+    "performanceLevel": "average",
+    "completionRate": 56
+  },
+  {
+    "sectionId": "data-governance",
+    "sectionTitle": "Data Governance Framework",
+    "category": "Data Management",
+    "totalQuestions": 18,
+    "completedQuestions": 13,
+    "averageScore": 70,
+    "isCritical": true,
+    "performanceLevel": "good",
+    "completionRate": 72
+  },
+  {
+    "sectionId": "data-security",
+    "sectionTitle": "Data Security & Privacy Protection",
+    "category": "Data Management",
+    "totalQuestions": 18,
+    "completedQuestions": 15,
+    "averageScore": 80,
+    "isCritical": true,
+    "performanceLevel": "excellent",
+    "completionRate": 83
+  }
+]

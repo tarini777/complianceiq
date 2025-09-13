@@ -1,0 +1,1039 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                  String       @id @default(uuid())
+  name                String
+  industryType        String?
+  description         String?
+  website             String?
+  subscriptionTier    String?
+  isActive            Boolean      @default(true)
+  createdAt           DateTime     @default(now())
+  therapeuticFocus    String[]
+  aiInitiatives       String[]
+  deploymentScenarios String[]
+  assessments         Assessment[]
+
+  @@map("tenants")
+}
+
+model TherapeuticArea {
+  id                     String                     @id @default(uuid())
+  name                   String
+  complexityPoints       Int                        @default(10)
+  regulatoryRequirements Json?
+  specificOverlays       Json?
+  therapyConditions      TherapyQuestionCondition[]
+  assessments            Assessment[]               @relation("AssessmentToTherapeuticArea")
+  therapyOverlays        TherapySpecificOverlay[]
+
+  @@map("therapeutic_areas")
+}
+
+model AIModelType {
+  id                     String       @id @default(uuid())
+  name                   String
+  complexityPoints       Int
+  specificRequirements   Json?
+  securityConsiderations Json?
+  assessments            Assessment[] @relation("AIModelTypeToAssessment")
+  aiModelOverlays        AIModelSpecificOverlay[]
+
+  @@map("ai_model_types")
+}
+
+model DeploymentScenario {
+  id                     String       @id @default(uuid())
+  name                   String
+  complexityPoints       Int
+  regulatoryPathway      String?
+  validationRequirements Json?
+  assessments            Assessment[] @relation("AssessmentToDeploymentScenario")
+  deploymentOverlays     DeploymentSpecificOverlay[]
+
+  @@map("deployment_scenarios")
+}
+
+model Assessment {
+  id                    String                 @id @default(uuid())
+  tenantId              String
+  assessmentName        String
+  geographicScope       String
+  ipStrategy            String
+  currentScore          Int                    @default(0)
+  maxPossibleScore      Int
+  status                String                 @default("in_progress")
+  version               String                 @default("1.0")
+  completedAt           DateTime?
+  completedBy           String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  assessmentDocuments   AssessmentDocument[]
+  assessmentVersions    AssessmentVersion[]
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id])
+  collaborationSessions CollaborationSession[]
+  learningInsights      LearningInsight[]
+  responses             UserResponse[]
+  aiModelTypes          AIModelType[]          @relation("AIModelTypeToAssessment")
+  deploymentScenarios   DeploymentScenario[]   @relation("AssessmentToDeploymentScenario")
+  therapeuticAreas      TherapeuticArea[]      @relation("AssessmentToTherapeuticArea")
+
+  @@map("assessments")
+}
+
+model AssessmentSection {
+  id                  String                      @id @default(uuid())
+  sectionNumber       Int
+  title               String
+  basePoints          Int
+  isCriticalBlocker   Boolean                     @default(false)
+  sectionType         String                      @default("standard") // "regulatory", "clinical", "safety", "human_in_loop", "explainable_ai"
+  productionValidator String?                     // Role responsible for validation
+  therapyOverlaysJson Json?                       // Therapy-specific overlays (JSON)
+  aiModelOverlaysJson Json?                       // AI model type-specific overlays (JSON)
+  learningComponentsJson Json?                    // Learning system components (JSON)
+  chatThreads         ChatThread[]
+  questions           DynamicQuestion[]
+  personaMappings     PersonaSectionMapping[]
+  collaborationStates SectionCollaborationState[]
+  filteringRules      SectionFilteringRule[]
+  therapyOverlays     TherapySpecificOverlay[]
+  aiModelOverlays     AIModelSpecificOverlay[]
+  deploymentOverlays  DeploymentSpecificOverlay[]
+  learningComponents  LearningSystemComponent[]
+  scoringRules        AssessmentScoringRule[]
+
+  @@map("assessment_sections")
+}
+
+model DynamicQuestion {
+  id                        String                     @id @default(uuid())
+  sectionId                 String
+  questionText              String
+  questionType              String
+  validationCriteria        Json?
+  evidenceRequired          String[]
+  responsibleRoles          String[]
+  therapySpecificConditions Json?
+  aiModelConditions         Json?
+  geographicConditions      Json?
+  ipConditions              Json?
+  isProductionBlocker       Boolean                    @default(false) // 🚨 PRODUCTION BLOCKER questions
+  productionValidator        String?                    // Role responsible for validation
+  therapyOverlaysJson       Json?                      // Therapy-specific question overlays (JSON)
+  aiModelOverlaysJson       Json?                      // AI model type-specific overlays (JSON)
+  deploymentOverlaysJson    Json?                      // Deployment scenario-specific overlays (JSON)
+  complexityPoints          Int                        @default(1)
+  // New fields for dynamic question generation
+  category                  String?
+  source                    Json?                      // Regulatory source information
+  status                    String                     @default("pending_approval") // 'pending_approval' | 'approved' | 'rejected' | 'draft'
+  generatedAt               DateTime?                  @default(now())
+  approvedBy                String?
+  approvedAt                DateTime?
+  rejectionReason           String?
+  assessmentSection         String?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  section                   AssessmentSection          @relation(fields: [sectionId], references: [id])
+  guidanceContent           GuidanceContent[]
+  personaMappings           PersonaQuestionMapping[]
+  therapyConditions         TherapyQuestionCondition[]
+  responses                 UserResponse[]
+  filteringRules            QuestionFilteringRule[]
+  therapyOverlays           TherapySpecificOverlay[]
+  aiModelOverlays           AIModelSpecificOverlay[]
+  deploymentOverlays        DeploymentSpecificOverlay[]
+
+  @@index([status])
+  @@index([assessmentSection])
+  @@index([generatedAt])
+  @@map("dynamic_questions")
+}
+
+model UserResponse {
+  id                String          @id @default(uuid())
+  assessmentId      String
+  questionId        String
+  responseValue     Json?
+  evidenceDocuments String[]
+  completionStatus  String?
+  validatedBy       String?
+  validationDate    DateTime?
+  createdAt         DateTime        @default(now())
+  assessment        Assessment      @relation(fields: [assessmentId], references: [id])
+  question          DynamicQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("user_responses")
+}
+
+model RegulatoryIntelligence {
+  id               String    @id @default(uuid())
+  source           String
+  regulationId     String
+  title            String
+  content          String
+  effectiveDate    DateTime?
+  therapeuticAreas String[]
+  aiModelRelevance String[]
+  impactLevel      String
+  status           String    @default("active")
+  lastUpdated      DateTime  @updatedAt
+
+  @@map("regulatory_intelligence")
+}
+
+model GuidanceContent {
+  id                  String          @id @default(uuid())
+  questionId          String
+  contentType         String
+  title               String
+  description         String
+  actionSteps         String[]
+  resources           Json?
+  examples            String[]
+  regulatoryCitations String[]
+  question            DynamicQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("guidance_content")
+}
+
+model BottleneckPattern {
+  id                     String  @id @default(uuid())
+  therapeuticArea        String
+  aiModelType            String
+  bottleneckDescription  String
+  resolutionStrategy     String
+  successRate            Decimal
+  implementationTimeDays Int
+  resourceRequirements   Json?
+
+  @@map("bottleneck_patterns")
+}
+
+model LearningInsight {
+  id              String     @id @default(uuid())
+  assessmentId    String
+  insightType     String
+  insightData     Json?
+  confidenceScore Decimal
+  createdAt       DateTime   @default(now())
+  assessment      Assessment @relation(fields: [assessmentId], references: [id])
+
+  @@map("learning_insights")
+}
+
+model AssessmentVersion {
+  id                String               @id @default(uuid())
+  assessmentId      String
+  version           String
+  versionName       String
+  description       String?
+  status            String
+  completionRate    Decimal
+  totalScore        Int
+  maxPossibleScore  Int
+  criticalBlockers  Int
+  completedSections Int
+  totalSections     Int
+  createdBy         String
+  createdAt         DateTime             @default(now())
+  completedAt       DateTime?
+  responses         AssessmentResponse[]
+  assessment        Assessment           @relation(fields: [assessmentId], references: [id])
+
+  @@unique([assessmentId, version])
+  @@map("assessment_versions")
+}
+
+model AssessmentResponse {
+  id            String            @id @default(uuid())
+  versionId     String
+  questionId    String
+  responseValue Json
+  points        Int
+  isCompleted   Boolean           @default(false)
+  completedAt   DateTime?
+  createdBy     String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  version       AssessmentVersion @relation(fields: [versionId], references: [id])
+
+  @@unique([versionId, questionId])
+  @@map("assessment_responses")
+}
+
+model AssessmentDocument {
+  id           String     @id @default(uuid())
+  assessmentId String
+  documentType String
+  fileName     String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  version      String
+  description  String?
+  uploadedBy   String
+  uploadedAt   DateTime   @default(now())
+  isActive     Boolean    @default(true)
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+
+  @@map("assessment_documents")
+}
+
+model AssessmentAuditLog {
+  id           String   @id @default(uuid())
+  assessmentId String
+  versionId    String?
+  action       String
+  description  String
+  performedBy  String
+  performedAt  DateTime @default(now())
+  metadata     Json?
+
+  @@map("assessment_audit_logs")
+}
+
+model Persona {
+  id               String                   @id @default(uuid())
+  name             String
+  description      String?
+  isAdmin          Boolean                  @default(false)
+  createdAt        DateTime                 @default(now())
+  questionMappings PersonaQuestionMapping[]
+  sectionMappings  PersonaSectionMapping[]
+  subPersonas      SubPersona[]
+
+  @@map("personas")
+}
+
+model SubPersona {
+  id               String                   @id @default(uuid())
+  personaId        String
+  name             String
+  description      String?
+  expertiseLevel   String
+  createdAt        DateTime                 @default(now())
+  questionMappings PersonaQuestionMapping[]
+  sectionMappings  PersonaSectionMapping[]
+  persona          Persona                  @relation(fields: [personaId], references: [id])
+
+  @@map("sub_personas")
+}
+
+model PersonaSectionMapping {
+  id                 String            @id @default(uuid())
+  personaId          String
+  subPersonaId       String
+  sectionId          String
+  accessLevel        String
+  responsibilityType String
+  canEdit            Boolean           @default(false)
+  canApprove         Boolean           @default(false)
+  canReview          Boolean           @default(false)
+  isRequired         Boolean           @default(false)
+  priorityScore      Int               @default(1)
+  collaborationNotes String?
+  createdAt          DateTime          @default(now())
+  persona            Persona           @relation(fields: [personaId], references: [id])
+  section            AssessmentSection @relation(fields: [sectionId], references: [id])
+  subPersona         SubPersona        @relation(fields: [subPersonaId], references: [id])
+
+  @@unique([personaId, subPersonaId, sectionId])
+  @@map("persona_section_mappings")
+}
+
+model PersonaQuestionMapping {
+  id                String          @id @default(uuid())
+  personaId         String
+  subPersonaId      String
+  questionId        String
+  isVisible         Boolean         @default(true)
+  expertiseRequired String
+  createdAt         DateTime        @default(now())
+  persona           Persona         @relation(fields: [personaId], references: [id])
+  question          DynamicQuestion @relation(fields: [questionId], references: [id])
+  subPersona        SubPersona      @relation(fields: [subPersonaId], references: [id])
+
+  @@unique([personaId, subPersonaId, questionId])
+  @@map("persona_question_mappings")
+}
+
+model TherapyQuestionCondition {
+  id                String          @id @default(uuid())
+  questionId        String
+  therapeuticAreaId String
+  conditionLogic    Json
+  createdAt         DateTime        @default(now())
+  question          DynamicQuestion @relation(fields: [questionId], references: [id])
+  therapeuticArea   TherapeuticArea @relation(fields: [therapeuticAreaId], references: [id])
+
+  @@unique([questionId, therapeuticAreaId])
+  @@map("therapy_question_conditions")
+}
+
+model SectionCollaborationState {
+  id           String            @id @default(uuid())
+  sectionId    String
+  currentState String
+  assignedTo   String?
+  reviewedBy   String?
+  approvedBy   String?
+  comments     String?
+  lastUpdated  DateTime          @default(now())
+  section      AssessmentSection @relation(fields: [sectionId], references: [id])
+
+  @@map("section_collaboration_states")
+}
+
+model CollaborationSession {
+  id                    String                   @id @default(uuid())
+  assessmentId          String
+  organizationId        String
+  sessionName           String
+  description           String?
+  status                String                   @default("active")
+  createdBy             String
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  messages              ChatMessage[]
+  threads               ChatThread[]
+  analytics             CollaborationAnalytics[]
+  assessment            Assessment               @relation(fields: [assessmentId], references: [id])
+  creator               User                     @relation("SessionCreator", fields: [createdBy], references: [id])
+  organization          Organization             @relation(fields: [organizationId], references: [id])
+  communicationPatterns CommunicationPattern[]
+  messageAnalytics      MessageAnalytics[]
+  predictiveInsights    PredictiveInsight[]
+  sentimentAnalysis     SentimentAnalysis[]
+  invitations           SessionInvitation[]
+  participants          SessionParticipant[]
+  teamMetrics           TeamPerformanceMetrics?
+
+  @@map("collaboration_sessions")
+}
+
+model SessionParticipant {
+  id         String               @id @default(uuid())
+  sessionId  String
+  userId     String
+  role       String               @default("viewer")
+  status     String               @default("active")
+  joinedAt   DateTime             @default(now())
+  lastActive DateTime             @default(now())
+  session    CollaborationSession @relation(fields: [sessionId], references: [id])
+  user       User                 @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@map("session_participants")
+}
+
+model ChatThread {
+  id         String               @id @default(uuid())
+  sessionId  String
+  threadName String
+  sectionId  String?
+  createdBy  String
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  messages   ChatMessage[]
+  creator    User                 @relation("ThreadCreator", fields: [createdBy], references: [id])
+  section    AssessmentSection?   @relation(fields: [sectionId], references: [id])
+  session    CollaborationSession @relation(fields: [sessionId], references: [id])
+
+  @@map("chat_threads")
+}
+
+model ChatMessage {
+  id                String               @id @default(uuid())
+  sessionId         String
+  threadId          String?
+  userId            String
+  content           String
+  messageType       String               @default("text")
+  parentMessageId   String?
+  fileUrl           String?
+  fileName          String?
+  fileSize          Int?
+  mimeType          String?
+  isEdited          Boolean              @default(false)
+  editedAt          DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  parentMessage     ChatMessage?         @relation("MessageReplies", fields: [parentMessageId], references: [id])
+  replies           ChatMessage[]        @relation("MessageReplies")
+  session           CollaborationSession @relation(fields: [sessionId], references: [id])
+  thread            ChatThread?          @relation(fields: [threadId], references: [id])
+  user              User                 @relation(fields: [userId], references: [id])
+  messageAnalytics  MessageAnalytics?
+  reactions         MessageReaction[]
+  sentimentAnalysis SentimentAnalysis?
+
+  @@map("chat_messages")
+}
+
+model MessageReaction {
+  id        String      @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime    @default(now())
+  message   ChatMessage @relation(fields: [messageId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+model SessionInvitation {
+  id        String               @id @default(uuid())
+  sessionId String
+  email     String
+  role      String               @default("viewer")
+  invitedBy String
+  status    String               @default("pending")
+  expiresAt DateTime
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  inviter   User                 @relation(fields: [invitedBy], references: [id])
+  session   CollaborationSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, email])
+  @@map("session_invitations")
+}
+
+model CollaborationAnalytics {
+  id                          String               @id @default(uuid())
+  sessionId                   String
+  userId                      String
+  organizationId              String
+  messagesSent                Int                  @default(0)
+  messagesReceived            Int                  @default(0)
+  responseTime                Int?
+  activeMinutes               Int                  @default(0)
+  lastActivityAt              DateTime             @default(now())
+  threadsCreated              Int                  @default(0)
+  reactionsGiven              Int                  @default(0)
+  reactionsReceived           Int                  @default(0)
+  mentionsSent                Int                  @default(0)
+  mentionsReceived            Int                  @default(0)
+  sessionJoinTime             DateTime             @default(now())
+  sessionLeaveTime            DateTime?
+  totalSessionTime            Int?
+  assessmentSectionsViewed    Int                  @default(0)
+  assessmentSectionsCompleted Int                  @default(0)
+  assessmentProgress          Float                @default(0.0)
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  organization                Organization         @relation(fields: [organizationId], references: [id])
+  session                     CollaborationSession @relation(fields: [sessionId], references: [id])
+  user                        User                 @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@map("collaboration_analytics")
+}
+
+model MessageAnalytics {
+  id              String               @id @default(uuid())
+  messageId       String               @unique
+  sessionId       String
+  userId          String
+  messageLength   Int
+  wordCount       Int
+  sentimentScore  Float?
+  sentimentLabel  String?
+  complexityScore Float?
+  urgencyScore    Float?
+  viewsCount      Int                  @default(0)
+  reactionsCount  Int                  @default(0)
+  replyCount      Int                  @default(0)
+  shareCount      Int                  @default(0)
+  responseTime    Int?
+  responseCount   Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  message         ChatMessage          @relation(fields: [messageId], references: [id])
+  session         CollaborationSession @relation(fields: [sessionId], references: [id])
+  user            User                 @relation(fields: [userId], references: [id])
+
+  @@map("message_analytics")
+}
+
+model TeamPerformanceMetrics {
+  id                       String               @id @default(uuid())
+  sessionId                String               @unique
+  organizationId           String
+  totalParticipants        Int
+  activeParticipants       Int
+  averageResponseTime      Float?
+  messageVolume            Int                  @default(0)
+  collaborationScore       Float?
+  engagementScore          Float?
+  productivityScore        Float?
+  communicationClarity     Float?
+  assessmentCompletionRate Float                @default(0.0)
+  averageAssessmentScore   Float?
+  timeToCompletion         Int?
+  bottleneckSeverity       Float?
+  bottleneckType           String?
+  bottleneckDescription    String?
+  riskScore                Float?
+  successProbability       Float?
+  recommendedActions       String?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  organization             Organization         @relation(fields: [organizationId], references: [id])
+  session                  CollaborationSession @relation(fields: [sessionId], references: [id])
+
+  @@map("team_performance_metrics")
+}
+
+model CommunicationPattern {
+  id                   String               @id @default(uuid())
+  sessionId            String
+  userId               String
+  organizationId       String
+  peakActivityHour     Int?
+  averageMessageLength Float?
+  messagesPerHour      Float?
+  responseRate         Float?
+  mostActiveWith       String?
+  threadParticipation  Float?
+  mentionFrequency     Float?
+  activeDays           String[]
+  sessionDuration      Int?
+  breakFrequency       Int?
+  questionRatio        Float?
+  directiveRatio       Float?
+  supportiveRatio      Float?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  organization         Organization         @relation(fields: [organizationId], references: [id])
+  session              CollaborationSession @relation(fields: [sessionId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@map("communication_patterns")
+}
+
+model SentimentAnalysis {
+  id                String               @id @default(uuid())
+  messageId         String               @unique
+  sessionId         String
+  userId            String
+  overallSentiment  Float
+  confidence        Float
+  positiveScore     Float                @default(0.0)
+  negativeScore     Float                @default(0.0)
+  neutralScore      Float                @default(0.0)
+  joyScore          Float                @default(0.0)
+  angerScore        Float                @default(0.0)
+  fearScore         Float                @default(0.0)
+  sadnessScore      Float                @default(0.0)
+  surpriseScore     Float                @default(0.0)
+  urgencyLevel      Float?
+  formalityLevel    Float?
+  collaborativeTone Float?
+  aiModel           String               @default("complianceiq-sentiment-v1")
+  analysisVersion   String               @default("1.0")
+  rawAnalysis       String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  message           ChatMessage          @relation(fields: [messageId], references: [id])
+  session           CollaborationSession @relation(fields: [sessionId], references: [id])
+  user              User                 @relation(fields: [userId], references: [id])
+
+  @@map("sentiment_analysis")
+}
+
+model PredictiveInsight {
+  id                 String               @id @default(uuid())
+  sessionId          String
+  organizationId     String
+  insightType        String
+  insightCategory    String
+  severity           Float
+  confidence         Float
+  title              String
+  description        String
+  recommendation     String?
+  expectedImpact     String?
+  timeframe          String?
+  triggerMetrics     String?
+  supportingEvidence String?
+  status             String               @default("active")
+  resolvedAt         DateTime?
+  resolvedBy         String?
+  resolutionNotes    String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  organization       Organization         @relation(fields: [organizationId], references: [id])
+  resolver           User?                @relation("InsightResolver", fields: [resolvedBy], references: [id])
+  session            CollaborationSession @relation(fields: [sessionId], references: [id])
+
+  @@map("predictive_insights")
+}
+
+model Organization {
+  id                     String                   @id @default(cuid())
+  name                   String                   @unique
+  type                   String
+  description            String?
+  isActive               Boolean                  @default(true)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  collaborationAnalytics CollaborationAnalytics[]
+  collaborationSessions  CollaborationSession[]
+  communicationPatterns  CommunicationPattern[]
+  predictiveInsights     PredictiveInsight[]
+  roles                  Role[]
+  teamPerformanceMetrics TeamPerformanceMetrics[]
+  users                  User[]
+
+  @@map("organizations")
+}
+
+model User {
+  id                     String                   @id @default(cuid())
+  email                  String                   @unique
+  name                   String
+  organizationId         String
+  roleId                 String
+  isActive               Boolean                  @default(true)
+  lastLoginAt            DateTime?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  chatMessages           ChatMessage[]
+  createdThreads         ChatThread[]             @relation("ThreadCreator")
+  collaborationAnalytics CollaborationAnalytics[]
+  createdSessions        CollaborationSession[]   @relation("SessionCreator")
+  communicationPatterns  CommunicationPattern[]
+  messageAnalytics       MessageAnalytics[]
+  messageReactions       MessageReaction[]
+  resolvedInsights       PredictiveInsight[]      @relation("InsightResolver")
+  sentimentAnalysis      SentimentAnalysis[]
+  sentInvitations        SessionInvitation[]
+  sessionParticipants    SessionParticipant[]
+  organization           Organization             @relation(fields: [organizationId], references: [id])
+  role                   Role                     @relation(fields: [roleId], references: [id])
+
+  @@map("users")
+}
+
+model Role {
+  id             String           @id @default(cuid())
+  name           String           @unique
+  description    String?
+  organizationId String
+  accessLevel    String
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  features       RoleFeature[]
+  permissions    RolePermission[]
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  users          User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  description     String?
+  category        String
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  role         Role       @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Feature {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  description  String?
+  category     String
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  roleFeatures RoleFeature[]
+
+  @@map("features")
+}
+
+model RoleFeature {
+  id        String  @id @default(cuid())
+  roleId    String
+  featureId String
+  feature   Feature @relation(fields: [featureId], references: [id])
+  role      Role    @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId, featureId])
+  @@map("role_features")
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String   @default("general")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// New models for sophisticated filtering system
+model SectionFilteringRule {
+  id                String            @id @default(uuid())
+  sectionId         String
+  ruleType          String            // "therapy_specific", "ai_model_specific", "deployment_specific", "persona_specific"
+  conditionLogic    Json              // Complex filtering conditions
+  priority          Int               @default(1)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  section           AssessmentSection @relation(fields: [sectionId], references: [id])
+
+  @@map("section_filtering_rules")
+}
+
+model QuestionFilteringRule {
+  id                String          @id @default(uuid())
+  questionId        String
+  ruleType          String          // "therapy_specific", "ai_model_specific", "deployment_specific", "persona_specific"
+  conditionLogic    Json            // Complex filtering conditions
+  priority          Int             @default(1)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  question          DynamicQuestion @relation(fields: [questionId], references: [id])
+
+  @@map("question_filtering_rules")
+}
+
+model TherapySpecificOverlay {
+  id                String          @id @default(uuid())
+  therapeuticAreaId String
+  sectionId         String?
+  questionId        String?
+  overlayType       String          // "oncology", "cardiology", "neurology", "rare_disease"
+  overlayContent    Json            // Therapy-specific content and requirements
+  complexityPoints  Int             @default(5)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  therapeuticArea   TherapeuticArea @relation(fields: [therapeuticAreaId], references: [id])
+  section           AssessmentSection? @relation(fields: [sectionId], references: [id])
+  question          DynamicQuestion? @relation(fields: [questionId], references: [id])
+
+  @@unique([therapeuticAreaId, sectionId])
+  @@map("therapy_specific_overlays")
+}
+
+model AIModelSpecificOverlay {
+  id                String          @id @default(uuid())
+  aiModelTypeId     String
+  sectionId         String?
+  questionId        String?
+  overlayType       String          // "traditional_ai", "genai", "agentic_ai", "computer_vision"
+  overlayContent    Json            // AI model type-specific content and requirements
+  complexityPoints  Int             @default(5)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  aiModelType       AIModelType     @relation(fields: [aiModelTypeId], references: [id])
+  section           AssessmentSection? @relation(fields: [sectionId], references: [id])
+  question          DynamicQuestion? @relation(fields: [questionId], references: [id])
+
+  @@unique([aiModelTypeId, sectionId])
+  @@map("ai_model_specific_overlays")
+}
+
+model DeploymentSpecificOverlay {
+  id                    String              @id @default(uuid())
+  deploymentScenarioId  String
+  sectionId             String?
+  questionId            String?
+  overlayType           String              // "clinical_decision_support", "drug_discovery", "clinical_trials", etc.
+  overlayContent        Json                // Deployment scenario-specific content and requirements
+  complexityPoints      Int                 @default(5)
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  deploymentScenario    DeploymentScenario  @relation(fields: [deploymentScenarioId], references: [id])
+  section               AssessmentSection?  @relation(fields: [sectionId], references: [id])
+  question              DynamicQuestion?    @relation(fields: [questionId], references: [id])
+
+  @@unique([deploymentScenarioId, sectionId])
+  @@map("deployment_specific_overlays")
+}
+
+model LearningSystemComponent {
+  id                String            @id @default(uuid())
+  sectionId         String
+  componentType     String            // "bottleneck_intelligence", "resolution_strategy", "success_metrics"
+  componentName     String
+  componentContent  Json              // Learning system content and intelligence
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  section           AssessmentSection @relation(fields: [sectionId], references: [id])
+
+  @@unique([sectionId, componentType])
+  @@map("learning_system_components")
+}
+
+model AssessmentScoringRule {
+  id                String            @id @default(uuid())
+  sectionId         String
+  ruleType          String            // "base_scoring", "therapy_overlay", "ai_model_overlay", "deployment_overlay", "learning_component"
+  conditionLogic    Json              // Scoring conditions
+  points            Int               @default(0)
+  maxPoints         Int               @default(0)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  section           AssessmentSection @relation(fields: [sectionId], references: [id])
+
+  @@unique([sectionId, ruleType])
+  @@map("assessment_scoring_rules")
+}
+
+// AskRexi Training and Caching System
+model AskRexiTrainingData {
+  id                  String   @id @default(uuid())
+  question            String
+  variations          String[]
+  category            String
+  subcategory         String
+  answer              String
+  actionItems         String[]
+  impactLevel         String
+  sources             String[]
+  keywords            String[]
+  therapeuticAreas    String[]
+  aiModelTypes        String[]
+  deploymentScenarios String[]
+  personas            String[]
+  tags                String[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([category])
+  @@index([subcategory])
+  @@index([keywords], type: Gin)
+  @@index([tags], type: Gin)
+  @@map("ask_rexi_training_data")
+}
+
+model AskRexiResponseCache {
+  id               String    @id @default(uuid())
+  questionHash     String    @unique
+  originalQuestion String
+  response         Json
+  category         String
+  hitCount         Int       @default(1)
+  lastAccessed     DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([questionHash])
+  @@index([category])
+  @@index([hitCount])
+  @@index([lastAccessed])
+  @@map("ask_rexi_response_cache")
+}
+
+model AskRexiNonContextualPatterns {
+  id          String   @id @default(uuid())
+  pattern     String
+  category    String
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([pattern])
+  @@map("ask_rexi_non_contextual_patterns")
+}
+
+model AskRexiContextualKeywords {
+  id        String   @id @default(uuid())
+  keyword   String
+  category  String
+  weight    Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@index([keyword])
+  @@index([category])
+  @@map("ask_rexi_contextual_keywords")
+}
+
+model AskRexiQuestionSimilarity {
+  id              String  @id @default(uuid())
+  question1Id     String
+  question2Id     String
+  similarityScore Decimal @db.Decimal(3, 2)
+  createdAt       DateTime @default(now())
+
+  @@index([question1Id])
+  @@index([question2Id])
+  @@index([similarityScore])
+  @@map("ask_rexi_question_similarity")
+}
+
+model AskRexiUsageAnalytics {
+  id                String   @id @default(uuid())
+  question          String
+  category          String
+  responseTime      Int
+  userSatisfaction  Int?
+  context           Json?
+  createdAt         DateTime @default(now())
+
+  @@index([category])
+  @@index([createdAt])
+  @@map("ask_rexi_usage_analytics")
+}
+
+
+model AssessmentQuestion {
+  id                  String   @id @default(uuid())
+  text                String
+  type                String
+  points              Int
+  isBlocker           Boolean  @default(false)
+  category            String
+  evidenceRequired    String[]
+  responsibleRole     String[]
+  validationCriteria  Json
+  assessmentSection   String
+  source              String   @default("manual")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([assessmentSection])
+  @@index([category])
+  @@map("assessment_questions")
+}

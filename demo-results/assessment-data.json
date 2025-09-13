@@ -1,0 +1,295 @@
+[
+  {
+    "id": "3f19655a-d1c7-4948-b646-e603ac15cd45",
+    "tenantId": "gilead",
+    "assessmentName": "Gilead Sciences - Immunology Assessment",
+    "geographicScope": "Global",
+    "ipStrategy": "Proprietary",
+    "currentScore": 0,
+    "maxPossibleScore": 100,
+    "status": "template",
+    "version": "1.0",
+    "completedAt": null,
+    "completedBy": null,
+    "createdAt": "2025-09-13T09:29:49.746Z",
+    "updatedAt": "2025-09-13T09:29:49.746Z",
+    "tenant": {
+      "id": "gilead",
+      "name": "Gilead Sciences",
+      "industryType": "Biotechnology",
+      "description": "Biotechnology company focused on antiviral therapies, oncology, and rare diseases",
+      "website": "https://www.gilead.com",
+      "subscriptionTier": "enterprise",
+      "isActive": true,
+      "createdAt": "2025-09-12T21:42:16.073Z",
+      "therapeuticFocus": [
+        "infectious_disease",
+        "oncology",
+        "rare_disease",
+        "immunology"
+      ],
+      "aiInitiatives": [
+        "drug_discovery",
+        "clinical_trial",
+        "patient_monitoring"
+      ],
+      "deploymentScenarios": [
+        "clinical_trial",
+        "drug_discovery",
+        "post_market"
+      ]
+    },
+    "therapeuticAreas": [
+      {
+        "id": "immunology",
+        "name": "Immunology",
+        "complexityPoints": 14,
+        "regulatoryRequirements": null,
+        "specificOverlays": null
+      }
+    ],
+    "aiModelTypes": [],
+    "deploymentScenarios": [],
+    "learningInsights": []
+  },
+  {
+    "id": "3a8fd4e7-2fdb-4222-b94f-78f336b333b3",
+    "tenantId": "gilead",
+    "assessmentName": "Gilead Sciences - Rare Disease Assessment",
+    "geographicScope": "Global",
+    "ipStrategy": "Proprietary",
+    "currentScore": 0,
+    "maxPossibleScore": 100,
+    "status": "template",
+    "version": "1.0",
+    "completedAt": null,
+    "completedBy": null,
+    "createdAt": "2025-09-13T09:29:49.745Z",
+    "updatedAt": "2025-09-13T09:29:49.745Z",
+    "tenant": {
+      "id": "gilead",
+      "name": "Gilead Sciences",
+      "industryType": "Biotechnology",
+      "description": "Biotechnology company focused on antiviral therapies, oncology, and rare diseases",
+      "website": "https://www.gilead.com",
+      "subscriptionTier": "enterprise",
+      "isActive": true,
+      "createdAt": "2025-09-12T21:42:16.073Z",
+      "therapeuticFocus": [
+        "infectious_disease",
+        "oncology",
+        "rare_disease",
+        "immunology"
+      ],
+      "aiInitiatives": [
+        "drug_discovery",
+        "clinical_trial",
+        "patient_monitoring"
+      ],
+      "deploymentScenarios": [
+        "clinical_trial",
+        "drug_discovery",
+        "post_market"
+      ]
+    },
+    "therapeuticAreas": [
+      {
+        "id": "rare_disease",
+        "name": "Rare Disease",
+        "complexityPoints": 20,
+        "regulatoryRequirements": null,
+        "specificOverlays": null
+      }
+    ],
+    "aiModelTypes": [],
+    "deploymentScenarios": [],
+    "learningInsights": []
+  },
+  {
+    "id": "0500148f-e855-40d6-ba17-5b0cbb8f72b2",
+    "tenantId": "gilead",
+    "assessmentName": "Gilead Sciences - Oncology Assessment",
+    "geographicScope": "Global",
+    "ipStrategy": "Proprietary",
+    "currentScore": 0,
+    "maxPossibleScore": 100,
+    "status": "template",
+    "version": "1.0",
+    "completedAt": null,
+    "completedBy": null,
+    "createdAt": "2025-09-13T09:29:49.743Z",
+    "updatedAt": "2025-09-13T09:29:49.743Z",
+    "tenant": {
+      "id": "gilead",
+      "name": "Gilead Sciences",
+      "industryType": "Biotechnology",
+      "description": "Biotechnology company focused on antiviral therapies, oncology, and rare diseases",
+      "website": "https://www.gilead.com",
+      "subscriptionTier": "enterprise",
+      "isActive": true,
+      "createdAt": "2025-09-12T21:42:16.073Z",
+      "therapeuticFocus": [
+        "infectious_disease",
+        "oncology",
+        "rare_disease",
+        "immunology"
+      ],
+      "aiInitiatives": [
+        "drug_discovery",
+        "clinical_trial",
+        "patient_monitoring"
+      ],
+      "deploymentScenarios": [
+        "clinical_trial",
+        "drug_discovery",
+        "post_market"
+      ]
+    },
+    "therapeuticAreas": [
+      {
+        "id": "oncology",
+        "name": "Oncology",
+        "complexityPoints": 15,
+        "regulatoryRequirements": null,
+        "specificOverlays": null
+      }
+    ],
+    "aiModelTypes": [],
+    "deploymentScenarios": [],
+    "learningInsights": []
+  },
+  {
+    "id": "7578f06e-98cf-4a11-a492-0db84d8cb961",
+    "tenantId": "gilead",
+    "assessmentName": "Gilead Sciences - Infectious Disease Assessment",
+    "geographicScope": "Global",
+    "ipStrategy": "Proprietary",
+    "currentScore": 0,
+    "maxPossibleScore": 100,
+    "status": "template",
+    "version": "1.0",
+    "completedAt": null,
+    "completedBy": null,
+    "createdAt": "2025-09-13T09:29:49.739Z",
+    "updatedAt": "2025-09-13T09:29:49.739Z",
+    "tenant": {
+      "id": "gilead",
+      "name": "Gilead Sciences",
+      "industryType": "Biotechnology",
+      "description": "Biotechnology company focused on antiviral therapies, oncology, and rare diseases",
+      "website": "https://www.gilead.com",
+      "subscriptionTier": "enterprise",
+      "isActive": true,
+      "createdAt": "2025-09-12T21:42:16.073Z",
+      "therapeuticFocus": [
+        "infectious_disease",
+        "oncology",
+        "rare_disease",
+        "immunology"
+      ],
+      "aiInitiatives": [
+        "drug_discovery",
+        "clinical_trial",
+        "patient_monitoring"
+      ],
+      "deploymentScenarios": [
+        "clinical_trial",
+        "drug_discovery",
+        "post_market"
+      ]
+    },
+    "therapeuticAreas": [
+      {
+        "id": "infectious_disease",
+        "name": "Infectious Disease",
+        "complexityPoints": 10,
+        "regulatoryRequirements": null,
+        "specificOverlays": null
+      }
+    ],
+    "aiModelTypes": [],
+    "deploymentScenarios": [],
+    "learningInsights": []
+  },
+  {
+    "id": "0852d8e7-b5bb-41be-bb45-a7a7462cf614",
+    "tenantId": "gilead",
+    "assessmentName": "Compliance Assessment - Annual Review #017",
+    "geographicScope": "APAC",
+    "ipStrategy": "Proprietary",
+    "currentScore": 60,
+    "maxPossibleScore": 100,
+    "status": "completed",
+    "version": "1.0",
+    "completedAt": "2025-09-27T08:01:47.295Z",
+    "completedBy": "system@complianceiq.com",
+    "createdAt": "2025-09-10T11:50:16.076Z",
+    "updatedAt": "2025-09-10T11:50:16.076Z",
+    "tenant": {
+      "id": "gilead",
+      "name": "Gilead Sciences",
+      "industryType": "Biotechnology",
+      "description": "Biotechnology company focused on antiviral therapies, oncology, and rare diseases",
+      "website": "https://www.gilead.com",
+      "subscriptionTier": "enterprise",
+      "isActive": true,
+      "createdAt": "2025-09-12T21:42:16.073Z",
+      "therapeuticFocus": [
+        "infectious_disease",
+        "oncology",
+        "rare_disease",
+        "immunology"
+      ],
+      "aiInitiatives": [
+        "drug_discovery",
+        "clinical_trial",
+        "patient_monitoring"
+      ],
+      "deploymentScenarios": [
+        "clinical_trial",
+        "drug_discovery",
+        "post_market"
+      ]
+    },
+    "therapeuticAreas": [
+      {
+        "id": "5d4310a0-6867-4fdf-a5f3-f542f3e9ec41",
+        "name": "Immunotherapy Research",
+        "complexityPoints": 12,
+        "regulatoryRequirements": {
+          "ema": true,
+          "fda": true,
+          "pmda": false
+        },
+        "specificOverlays": null
+      }
+    ],
+    "aiModelTypes": [
+      {
+        "id": "84bed57b-5805-4b4f-a0e1-af72a174e3e1",
+        "name": "Manufacturing Process AI",
+        "complexityPoints": 10,
+        "specificRequirements": {
+          "monitoring": "Continuous",
+          "validation": "Required",
+          "documentation": "Comprehensive"
+        },
+        "securityConsiderations": null
+      }
+    ],
+    "deploymentScenarios": [
+      {
+        "id": "83459c54-2bed-4fda-a7b9-7c24065711c8",
+        "name": "Clinical Research Environment",
+        "complexityPoints": 10,
+        "regulatoryPathway": "FDA 510(k)",
+        "validationRequirements": {
+          "quality": true,
+          "clinical": true,
+          "manufacturing": true
+        }
+      }
+    ],
+    "learningInsights": []
+  }
+]

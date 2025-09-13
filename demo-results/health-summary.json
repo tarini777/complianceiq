@@ -1,0 +1,10 @@
+{
+  "currentHealthScore": 87,
+  "currentStatus": "excellent",
+  "trend": "stable",
+  "trendScore": 0,
+  "recommendations": [
+    "AskRexi response time is slow - optimize AI processing"
+  ],
+  "riskFactors": []
+}

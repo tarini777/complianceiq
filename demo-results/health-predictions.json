@@ -1,0 +1,13 @@
+{
+  "healthScore": 89,
+  "status": "excellent",
+  "predictions": {
+    "nextHour": 89,
+    "nextDay": 89,
+    "nextWeek": 89
+  },
+  "recommendations": [
+    "AskRexi response time is slow - optimize AI processing"
+  ],
+  "riskFactors": []
+}

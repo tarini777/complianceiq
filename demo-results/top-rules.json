@@ -1,0 +1,86 @@
+[
+  {
+    "ruleId": "fda-ai-governance-001",
+    "ruleName": "FDA AI Governance Framework Compliance",
+    "successRate": 78,
+    "commonFailurePatterns": [
+      "Missing documentation for AI model validation",
+      "Insufficient risk assessment procedures",
+      "Lack of post-market monitoring protocols"
+    ],
+    "optimizationSuggestions": [
+      "Implement automated documentation templates",
+      "Create risk assessment checklist",
+      "Establish continuous monitoring dashboard"
+    ],
+    "impactScore": 92,
+    "affectedAssessments": 45,
+    "lastAnalyzed": "2025-09-13T20:06:59.090Z"
+  },
+  {
+    "ruleId": "data-quality-002",
+    "ruleName": "Data Quality Assurance Standards",
+    "successRate": 85,
+    "commonFailurePatterns": [
+      "Inconsistent data validation processes",
+      "Missing data lineage documentation"
+    ],
+    "optimizationSuggestions": [
+      "Standardize validation workflows",
+      "Implement automated data lineage tracking"
+    ],
+    "impactScore": 87,
+    "affectedAssessments": 32,
+    "lastAnalyzed": "2025-09-13T20:06:59.090Z"
+  },
+  {
+    "ruleId": "model-validation-003",
+    "ruleName": "AI Model Validation Requirements",
+    "successRate": 65,
+    "commonFailurePatterns": [
+      "Incomplete validation test coverage",
+      "Missing bias detection protocols",
+      "Insufficient performance monitoring"
+    ],
+    "optimizationSuggestions": [
+      "Expand validation test suite",
+      "Implement automated bias detection",
+      "Create real-time performance monitoring"
+    ],
+    "impactScore": 95,
+    "affectedAssessments": 28,
+    "lastAnalyzed": "2025-09-13T20:06:59.090Z"
+  },
+  {
+    "ruleId": "clinical-validation-004",
+    "ruleName": "Clinical Validation Standards",
+    "successRate": 72,
+    "commonFailurePatterns": [
+      "Inadequate clinical evidence documentation",
+      "Missing statistical analysis protocols"
+    ],
+    "optimizationSuggestions": [
+      "Create clinical evidence templates",
+      "Implement statistical analysis workflows"
+    ],
+    "impactScore": 89,
+    "affectedAssessments": 21,
+    "lastAnalyzed": "2025-09-13T20:06:59.090Z"
+  },
+  {
+    "ruleId": "risk-management-005",
+    "ruleName": "AI Risk Management Framework",
+    "successRate": 81,
+    "commonFailurePatterns": [
+      "Incomplete risk categorization",
+      "Missing mitigation strategies"
+    ],
+    "optimizationSuggestions": [
+      "Enhance risk categorization matrix",
+      "Develop comprehensive mitigation playbooks"
+    ],
+    "impactScore": 83,
+    "affectedAssessments": 38,
+    "lastAnalyzed": "2025-09-13T20:06:59.090Z"
+  }
+]

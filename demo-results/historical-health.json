@@ -1,0 +1,82 @@
+[
+  {
+    "timestamp": "2025-09-13T20:06:59.328Z",
+    "metrics": {
+      "apiResponseTime": 216.95491537501982,
+      "databaseQueryTime": 23.077452297386852,
+      "memoryUsage": 96.61797670618671,
+      "cpuUsage": 14.029489639677417,
+      "errorRate": 0.012531928618438937,
+      "userSatisfaction": 71.49551126652227,
+      "assessmentCompletionRate": 96.97299718975461,
+      "askRexiResponseTime": 244.87657192429933,
+      "activeUsers": 44,
+      "systemLoad": 48.15604740599056
+    },
+    "prediction": {
+      "healthScore": 90,
+      "status": "excellent",
+      "predictions": {
+        "nextHour": 90,
+        "nextDay": 90,
+        "nextWeek": 90
+      },
+      "recommendations": [],
+      "riskFactors": []
+    }
+  },
+  {
+    "timestamp": "2025-09-13T20:06:59.345Z",
+    "metrics": {
+      "apiResponseTime": 54.09896233274818,
+      "databaseQueryTime": 51.14954310445859,
+      "memoryUsage": 42.3412042106432,
+      "cpuUsage": 23.539580781782767,
+      "errorRate": 0.04229876805112634,
+      "userSatisfaction": 77.04617678943269,
+      "assessmentCompletionRate": 72.5596926556966,
+      "askRexiResponseTime": 316.1672914640425,
+      "activeUsers": 24,
+      "systemLoad": 98.7611775411611
+    },
+    "prediction": {
+      "healthScore": 88,
+      "status": "excellent",
+      "predictions": {
+        "nextHour": 88,
+        "nextDay": 88,
+        "nextWeek": 88
+      },
+      "recommendations": [
+        "AskRexi response time is slow - optimize AI processing"
+      ],
+      "riskFactors": []
+    }
+  },
+  {
+    "timestamp": "2025-09-13T20:06:59.357Z",
+    "metrics": {
+      "apiResponseTime": 245.63704270766368,
+      "databaseQueryTime": 119.75180594449601,
+      "memoryUsage": 41.48806817655627,
+      "cpuUsage": 73.62592491446294,
+      "errorRate": 0.01667047723107509,
+      "userSatisfaction": 76.95997664549354,
+      "assessmentCompletionRate": 75.54539295038155,
+      "askRexiResponseTime": 211.31729932457625,
+      "activeUsers": 54,
+      "systemLoad": 35.84126988081776
+    },
+    "prediction": {
+      "healthScore": 86,
+      "status": "excellent",
+      "predictions": {
+        "nextHour": 86,
+        "nextDay": 86,
+        "nextWeek": 86
+      },
+      "recommendations": [],
+      "riskFactors": []
+    }
+  }
+]
