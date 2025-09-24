@@ -4,6 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
 // import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {

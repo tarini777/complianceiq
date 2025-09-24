@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceIQ - Pharmaceutical AI Production Readiness Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .section-counter {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6">
+                    ComplianceIQ
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 text-blue-100">
+                    The World's First AI-Powered Pharmaceutical Compliance Platform
+                </p>
+                <p class="text-lg mb-12 text-blue-200">
+                    Transform regulatory compliance from barrier to competitive advantage with 
+                    <span class="font-bold text-yellow-300">32+ sections</span>, 
+                    <span class="font-bold text-yellow-300">400+ dynamic questions</span>, 
+                    and intelligent therapy & model-based readiness assessment
+                </p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button class="bg-yellow-400 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-yellow-300 transition-colors">
+                        <i class="fas fa-rocket mr-2"></i>Start Free Assessment
+                    </button>
+                    <button class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-gray-900 transition-colors">
+                        <i class="fas fa-play mr-2"></i>Watch Demo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem & Solution -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                        The $2-5M Problem Every Pharma Company Faces
+                    </h2>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle text-red-500 text-xl mr-4"></i>
+                            <span class="text-lg">70% of AI initiatives fail due to compliance issues</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle text-red-500 text-xl mr-4"></i>
+                            <span class="text-lg">6-18 months of manual compliance assessment</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle text-red-500 text-xl mr-4"></i>
+                            <span class="text-lg">High risk of missing critical regulatory requirements</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle text-red-500 text-xl mr-4"></i>
+                            <span class="text-lg">$2-5M in regulatory delays per AI project</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Our Solution</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-4"></i>
+                            <span class="text-lg"><strong>85% faster</strong> compliance assessment</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-4"></i>
+                            <span class="text-lg"><strong>6-12 months</strong> faster AI deployment</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-4"></i>
+                            <span class="text-lg"><strong>100% compliance</strong> coverage assurance</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-4"></i>
+                            <span class="text-lg"><strong>$2-5M savings</strong> per AI project</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    Comprehensive Compliance Coverage
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    From ideation to production, ComplianceIQ provides complete regulatory coverage 
+                    with intelligent, context-aware assessment capabilities
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <!-- 32+ Sections -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-layer-group text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">
+                            <span class="section-counter">32+</span> Critical Sections
+                        </h3>
+                        <p class="text-gray-600 mb-6">
+                            Comprehensive coverage across all regulatory domains including FDA 2025 Guidance, 
+                            International Harmonization, AI Governance, and Data Privacy
+                        </p>
+                        <div class="text-sm text-gray-500">
+                            <div class="flex justify-between mb-2">
+                                <span>Regulatory Compliance</span>
+                                <span>8 sections</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>AI/ML Governance</span>
+                                <span>6 sections</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Data & Privacy</span>
+                                <span>5 sections</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Clinical & Safety</span>
+                                <span>4 sections</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Technical & Quality</span>
+                                <span>9 sections</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 400+ Questions -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-question-circle text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">
+                            <span class="section-counter">400+</span> Dynamic Questions
+                        </h3>
+                        <p class="text-gray-600 mb-6">
+                            Intelligent, context-aware questions that adapt to your company, 
+                            therapeutic area, AI model type, and deployment scenario
+                        </p>
+                        <div class="text-sm text-gray-500">
+                            <div class="flex justify-between mb-2">
+                                <span>Production Blockers</span>
+                                <span>45 questions</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Critical Requirements</span>
+                                <span>120 questions</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Best Practices</span>
+                                <span>180 questions</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Evidence Collection</span>
+                                <span>55 questions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Persona-Based -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-users text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">
+                            Persona-Driven Assessment
+                        </h3>
+                        <p class="text-gray-600 mb-6">
+                            Role-specific assessments with 9 main personas and 25 sub-personas, 
+                            ensuring relevant questions for each team member
+                        </p>
+                        <div class="text-sm text-gray-500">
+                            <div class="flex justify-between mb-2">
+                                <span>Executive Leadership</span>
+                                <span>3 sub-personas</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Data Science & AI</span>
+                                <span>3 sub-personas</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Regulatory Affairs</span>
+                                <span>3 sub-personas</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>Quality & Risk</span>
+                                <span>3 sub-personas</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span>+ 5 more personas</span>
+                                <span>13 sub-personas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Therapy & Model-Based Readiness -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    Intelligent Context-Aware Assessment
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Questions dynamically adapt based on your specific context, ensuring 
+                    relevant and actionable compliance guidance
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Therapeutic Areas -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">
+                        <i class="fas fa-heartbeat text-blue-600 mr-3"></i>
+                        Therapeutic Area Intelligence
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        Questions adapt to your specific therapeutic focus, ensuring 
+                        compliance requirements match your clinical applications
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Oncology</div>
+                            <div class="text-sm text-gray-600">Cancer treatment protocols</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Cardiology</div>
+                            <div class="text-sm text-gray-600">Heart disease management</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Neurology</div>
+                            <div class="text-sm text-gray-600">Brain & nervous system</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Immunology</div>
+                            <div class="text-sm text-gray-600">Immune system disorders</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Model Types -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-8 rounded-2xl">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">
+                        <i class="fas fa-brain text-green-600 mr-3"></i>
+                        AI Model Type Adaptation
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        Compliance requirements adjust based on your AI model type, 
+                        ensuring appropriate governance for each technology
+                    </p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Traditional AI/ML</div>
+                            <div class="text-sm text-gray-600">Supervised learning, model validation</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Generative AI</div>
+                            <div class="text-sm text-gray-600">LLMs, content generation, hallucination risks</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <div class="font-semibold text-gray-900">Agentic AI</div>
+                            <div class="text-sm text-gray-600">Autonomous agents, decision-making systems</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ideation to Production Journey -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    Complete Ideation-to-Production Journey
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    From initial concept to production deployment, ComplianceIQ guides you 
+                    through every step of the regulatory compliance process
+                </p>
+            </div>
+
+            <div class="relative">
+                <!-- Timeline Line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 to-green-500"></div>
+                
+                <!-- Timeline Steps -->
+                <div class="space-y-12">
+                    <!-- Step 1: Ideation -->
+                    <div class="flex items-center">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <div class="flex items-center justify-end mb-4">
+                                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                                    <h3 class="text-xl font-bold text-gray-900 ml-4">Ideation & Planning</h3>
+                                </div>
+                                <p class="text-gray-600">
+                                    Define your AI initiative, select therapeutic areas, and configure 
+                                    your compliance assessment parameters
+                                </p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold z-10">1</div>
+                        <div class="w-1/2 pl-8"></div>
+                    </div>
+
+                    <!-- Step 2: Assessment -->
+                    <div class="flex items-center">
+                        <div class="w-1/2 pr-8"></div>
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold z-10">2</div>
+                        <div class="w-1/2 pl-8">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <div class="flex items-center mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 mr-4">Dynamic Assessment</h3>
+                                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">2</div>
+                                </div>
+                                <p class="text-gray-600">
+                                    Complete persona-driven assessment with 400+ context-aware questions 
+                                    across 32+ compliance sections
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Collaboration -->
+                    <div class="flex items-center">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <div class="flex items-center justify-end mb-4">
+                                    <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">3</div>
+                                    <h3 class="text-xl font-bold text-gray-900 ml-4">Team Collaboration</h3>
+                                </div>
+                                <p class="text-gray-600">
+                                    Multi-persona review and approval workflows with real-time 
+                                    collaboration and progress tracking
+                                </p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold z-10">3</div>
+                        <div class="w-1/2 pl-8"></div>
+                    </div>
+
+                    <!-- Step 4: AI Insights -->
+                    <div class="flex items-center">
+                        <div class="w-1/2 pr-8"></div>
+                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold z-10">4</div>
+                        <div class="w-1/2 pl-8">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <div class="flex items-center mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900 mr-4">AI-Powered Insights</h3>
+                                    <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">4</div>
+                                </div>
+                                <p class="text-gray-600">
+                                    Receive intelligent recommendations, risk factors, and opportunities 
+                                    with 87-95% confidence scores
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Production -->
+                    <div class="flex items-center">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <div class="flex items-center justify-end mb-4">
+                                    <div class="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">5</div>
+                                    <h3 class="text-xl font-bold text-gray-900 ml-4">Production Ready</h3>
+                                </div>
+                                <p class="text-gray-600">
+                                    Deploy with confidence knowing you've met all regulatory requirements 
+                                    and have comprehensive compliance documentation
+                                </p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold z-10">5</div>
+                        <div class="w-1/2 pl-8"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI-Powered Features -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    AI-Powered Intelligence
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Advanced AI capabilities that provide intelligent insights, 
+                    proactive recommendations, and automated compliance guidance
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- AskRexi Assistant -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-robot text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">AskRexi AI Assistant</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Natural language compliance guidance with 1000+ trained questions
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Response Time</span>
+                                <span>4-7ms</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Accuracy</span>
+                                <span>95%+</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Training Data</span>
+                                <span>1000+ Q&As</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Analytics -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Real-time Analytics</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Dynamic insights and performance tracking across all compliance areas
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Confidence</span>
+                                <span>87-95%</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Coverage</span>
+                                <span>32 sections</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Updates</span>
+                                <span>Real-time</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proactive Compliance -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-shield-alt text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Proactive Compliance</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Risk identification and mitigation strategies before issues arise
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Risk Reduction</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>Time Savings</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Coverage</span>
+                                <span>Global</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Analytics -->
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-2xl card-hover">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-lock text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Privacy Analytics</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Comprehensive data governance and privacy compliance monitoring
+                        </p>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>GDPR</span>
+                                <span>✓</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span>HIPAA</span>
+                                <span>✓</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>21 CFR Part 11</span>
+                                <span>✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits & ROI -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    Measurable Business Impact
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Transform compliance from a cost center into a competitive advantage 
+                    with quantifiable results and ROI
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Time Savings -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center card-hover">
+                    <div class="text-4xl font-bold text-blue-600 mb-4">85%</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Faster Assessment</h3>
+                    <p class="text-gray-600">
+                        Reduce compliance assessment time from 6-18 months to 2-4 weeks
+                    </p>
+                </div>
+
+                <!-- Cost Savings -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center card-hover">
+                    <div class="text-4xl font-bold text-green-600 mb-4">$2-5M</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Cost Savings</h3>
+                    <p class="text-gray-600">
+                        Prevent costly regulatory delays and rework per AI project
+                    </p>
+                </div>
+
+                <!-- Risk Reduction -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center card-hover">
+                    <div class="text-4xl font-bold text-purple-600 mb-4">85%</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Risk Reduction</h3>
+                    <p class="text-gray-600">
+                        Eliminate regulatory compliance risks through comprehensive coverage
+                    </p>
+                </div>
+
+                <!-- Deployment Speed -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg text-center card-hover">
+                    <div class="text-4xl font-bold text-orange-600 mb-4">6-12</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Months Faster</h3>
+                    <p class="text-gray-600">
+                        Accelerate AI deployment with confidence and compliance
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Human-Centric Design -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">
+                    Human-Centric Design
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Intuitive, user-friendly interface designed for regulatory professionals, 
+                    not just technical experts
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Intuitive Interface -->
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-mouse-pointer text-blue-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Intuitive Interface</h3>
+                    <p class="text-gray-600">
+                        Clean, professional design that guides users through complex 
+                        compliance requirements without confusion
+                    </p>
+                </div>
+
+                <!-- Role-Based Experience -->
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-user-tie text-green-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Role-Based Experience</h3>
+                    <p class="text-gray-600">
+                        Personalized interface that adapts to each user's role and expertise level, 
+                        showing only relevant information
+                    </p>
+                </div>
+
+                <!-- Collaborative Workflow -->
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-users text-purple-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Collaborative Workflow</h3>
+                    <p class="text-gray-600">
+                        Seamless team collaboration with real-time updates, comments, 
+                        and approval workflows
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold mb-6">
+                Ready to Transform Your AI Compliance?
+            </h2>
+            <p class="text-xl mb-8 text-blue-100">
+                Join leading pharmaceutical companies who are already using ComplianceIQ 
+                to accelerate their AI initiatives
+            </p>
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <button class="bg-yellow-400 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-yellow-300 transition-colors">
+                    <i class="fas fa-rocket mr-2"></i>Start Free Assessment
+                </button>
+                <button class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-gray-900 transition-colors">
+                    <i class="fas fa-calendar mr-2"></i>Schedule Demo
+                </button>
+            </div>
+            <p class="text-sm text-blue-200 mt-6">
+                No credit card required • 30-day free trial • Enterprise support available
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">ComplianceIQ</h3>
+                    <p class="text-gray-400">
+                        The world's first AI-powered pharmaceutical compliance platform
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Features</a></li>
+                        <li><a href="#" class="hover:text-white">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white">API</a></li>
+                        <li><a href="#" class="hover:text-white">Documentation</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">About</a></li>
+                        <li><a href="#" class="hover:text-white">Careers</a></li>
+                        <li><a href="#" class="hover:text-white">Contact</a></li>
+                        <li><a href="#" class="hover:text-white">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white">Community</a></li>
+                        <li><a href="#" class="hover:text-white">Status</a></li>
+                        <li><a href="#" class="hover:text-white">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 ComplianceIQ. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add some interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // Add animation on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for animation
+            document.querySelectorAll('.card-hover').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

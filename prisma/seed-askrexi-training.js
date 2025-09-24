@@ -320,15 +320,15 @@ const trainingQuestions = [
   }
 ];
 
-// Generate additional questions to reach 1000+ total
+// Generate additional questions to reach 5000+ total
 const generateAdditionalQuestions = () => {
   const additionalQuestions = [];
   const baseQuestions = trainingQuestions.length;
   
   // Generate variations for each base question
   trainingQuestions.forEach((baseQuestion, index) => {
-    // Add 2-3 variations for each base question
-    for (let i = 0; i < 3; i++) {
+    // Add 5-8 variations for each base question
+    for (let i = 0; i < 8; i++) {
       const variation = {
         ...baseQuestion,
         id: `training-${baseQuestions + additionalQuestions.length + 1}`,
@@ -342,17 +342,190 @@ const generateAdditionalQuestions = () => {
   return additionalQuestions;
 };
 
+// Generate specific compliance scenario questions
+const generateScenarioQuestions = () => {
+  const scenarios = [
+    'What happens if my AI model fails validation?',
+    'How do I handle AI model updates in production?',
+    'What are the consequences of non-compliance?',
+    'How do I prepare for regulatory inspections?',
+    'What if my AI system has bias issues?',
+    'How do I document AI model decisions?',
+    'What are the costs of AI compliance?',
+    'How long does AI compliance take?',
+    'Who is responsible for AI compliance?',
+    'How do I train staff on AI compliance?',
+    'What tools help with AI compliance?',
+    'How do I audit AI systems?',
+    'What are AI compliance best practices?',
+    'How do I measure AI compliance success?',
+    'What are common AI compliance mistakes?',
+    'How do I handle AI data breaches?',
+    'What are AI compliance deadlines?',
+    'How do I scale AI compliance?',
+    'What are AI compliance certifications?',
+    'How do I maintain AI compliance?'
+  ];
+  
+  const scenarioQuestions = [];
+  scenarios.forEach((scenario, index) => {
+    scenarioQuestions.push({
+      id: `scenario-${index + 1}`,
+      question: scenario,
+      variations: [scenario],
+      category: 'general',
+      subcategory: 'Scenarios',
+      answer: generateScenarioAnswer(scenario),
+      actionItems: generateScenarioActionItems(scenario),
+      impactLevel: 'medium',
+      sources: ['ComplianceIQ Knowledge Base'],
+      keywords: extractScenarioKeywords(scenario),
+      therapeuticAreas: ['All'],
+      aiModelTypes: ['All'],
+      deploymentScenarios: ['All'],
+      personas: ['All'],
+      tags: ['Scenarios', 'Compliance', 'AI']
+    });
+  });
+  
+  return scenarioQuestions;
+};
+
+function generateScenarioAnswer(scenario) {
+  const answers = {
+    'What happens if my AI model fails validation?': 'If your AI model fails validation, you must address the issues before production deployment. This typically involves retraining the model, improving data quality, or adjusting model parameters. Document all changes and re-run validation tests.',
+    'How do I handle AI model updates in production?': 'AI model updates require careful change management. Implement version control, conduct impact assessments, run validation tests, and update documentation. Consider gradual rollout and monitoring.',
+    'What are the consequences of non-compliance?': 'Non-compliance can result in regulatory fines, delayed approvals, reputational damage, and legal action. It can also impact patient safety and business operations.',
+    'How do I prepare for regulatory inspections?': 'Prepare comprehensive documentation, ensure all systems are compliant, train staff on inspection procedures, and conduct internal audits. Have evidence ready for all AI systems and processes.',
+    'What if my AI system has bias issues?': 'Bias issues require immediate attention. Conduct bias assessments, implement bias mitigation strategies, retrain models with balanced data, and establish ongoing bias monitoring.',
+    'How do I document AI model decisions?': 'Document model architecture, training data, validation results, decision logic, and performance metrics. Use standardized templates and maintain version control.',
+    'What are the costs of AI compliance?': 'AI compliance costs include personnel, tools, validation, documentation, training, and ongoing monitoring. Budget for 15-25% of AI project costs for compliance.',
+    'How long does AI compliance take?': 'AI compliance typically takes 3-6 months for initial setup, with ongoing maintenance. Complex systems may require 6-12 months for full compliance.',
+    'Who is responsible for AI compliance?': 'AI compliance is a shared responsibility involving data scientists, regulatory affairs, quality assurance, legal, and executive teams. Assign clear roles and responsibilities.',
+    'How do I train staff on AI compliance?': 'Develop comprehensive training programs covering regulations, processes, and tools. Include hands-on exercises, case studies, and regular updates on regulatory changes.',
+    'What tools help with AI compliance?': 'Use compliance management systems, validation tools, documentation platforms, monitoring systems, and audit tools. ComplianceIQ provides integrated compliance management.',
+    'How do I audit AI systems?': 'Conduct regular audits covering data quality, model performance, documentation, and compliance. Use checklists, automated tools, and external auditors when needed.',
+    'What are AI compliance best practices?': 'Best practices include starting compliance early, involving all stakeholders, maintaining comprehensive documentation, implementing continuous monitoring, and staying updated on regulations.',
+    'How do I measure AI compliance success?': 'Measure success through compliance scores, audit results, regulatory feedback, risk reduction, and business outcomes. Track key performance indicators regularly.',
+    'What are common AI compliance mistakes?': 'Common mistakes include starting compliance too late, inadequate documentation, poor data governance, insufficient validation, and lack of ongoing monitoring.',
+    'How do I handle AI data breaches?': 'Follow incident response procedures, notify relevant authorities, assess impact, implement containment measures, and strengthen security controls.',
+    'What are AI compliance deadlines?': 'Deadlines vary by regulation and region. FDA guidelines have specific timelines, while EU AI Act compliance is required by 2026.',
+    'How do I scale AI compliance?': 'Scale compliance by standardizing processes, automating where possible, training teams, and implementing enterprise-wide compliance frameworks.',
+    'What are AI compliance certifications?': 'Consider certifications like ISO 27001, SOC 2, and industry-specific certifications. Some organizations offer AI-specific compliance certifications.',
+    'How do I maintain AI compliance?': 'Maintain compliance through regular monitoring, updates, training, audits, and staying current with regulatory changes. Implement continuous improvement processes.'
+  };
+  
+  return answers[scenario] || 'This scenario requires specific analysis based on your situation. Consult with compliance experts and review relevant regulations.';
+}
+
+function generateScenarioActionItems(scenario) {
+  const actionItems = {
+    'What happens if my AI model fails validation?': [
+      'Document validation failure reasons',
+      'Develop remediation plan',
+      'Retrain model with improved data',
+      'Re-run validation tests',
+      'Update documentation'
+    ],
+    'How do I handle AI model updates in production?': [
+      'Implement version control',
+      'Conduct impact assessment',
+      'Run validation tests',
+      'Plan gradual rollout',
+      'Monitor performance'
+    ],
+    'What are the consequences of non-compliance?': [
+      'Assess current compliance status',
+      'Identify compliance gaps',
+      'Develop remediation plan',
+      'Implement compliance measures',
+      'Monitor ongoing compliance'
+    ],
+    'How do I prepare for regulatory inspections?': [
+      'Organize documentation',
+      'Conduct internal audit',
+      'Train inspection team',
+      'Prepare evidence packages',
+      'Schedule mock inspections'
+    ],
+    'What if my AI system has bias issues?': [
+      'Conduct bias assessment',
+      'Identify bias sources',
+      'Implement mitigation strategies',
+      'Retrain with balanced data',
+      'Establish bias monitoring'
+    ]
+  };
+  
+  return actionItems[scenario] || [
+    'Analyze the specific scenario',
+    'Consult relevant regulations',
+    'Develop action plan',
+    'Implement solutions',
+    'Monitor outcomes'
+  ];
+}
+
+function extractScenarioKeywords(scenario) {
+  const keywords = [];
+  if (scenario.includes('validation')) keywords.push('validation', 'testing');
+  if (scenario.includes('compliance')) keywords.push('compliance', 'regulatory');
+  if (scenario.includes('AI') || scenario.includes('model')) keywords.push('ai', 'model');
+  if (scenario.includes('documentation')) keywords.push('documentation');
+  if (scenario.includes('training')) keywords.push('training', 'education');
+  if (scenario.includes('audit')) keywords.push('audit', 'inspection');
+  return keywords;
+}
+
+// Generate comprehensive question variations to reach 5000+
+const generateComprehensiveQuestions = () => {
+  const additionalQuestions = [];
+  
+  // Generate detailed variations for each base question
+  trainingQuestions.forEach((baseQuestion, index) => {
+    // Generate 10+ variations per question
+    for (let i = 0; i < 12; i++) {
+      const variations = [
+        baseQuestion.question,
+        baseQuestion.question.replace(/What are/, 'How do I find'),
+        baseQuestion.question.replace(/How do/, 'What are the steps to'),
+        baseQuestion.question.replace(/What is/, 'Can you explain'),
+        baseQuestion.question.replace(/How can/, 'What are the ways to'),
+        baseQuestion.question.replace(/What does/, 'How does'),
+        baseQuestion.question.replace(/What are the/, 'Tell me about the'),
+        baseQuestion.question.replace(/How do I/, 'What is the process for'),
+        baseQuestion.question.replace(/What are/, 'List the'),
+        baseQuestion.question.replace(/How to/, 'Steps to'),
+        baseQuestion.question.replace(/What/, 'Tell me about'),
+        baseQuestion.question.replace(/How/, 'What is the method for')
+      ];
+      
+      const variation = {
+        ...baseQuestion,
+        id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
+        question: variations[i] || baseQuestion.question,
+        variations: variations.slice(0, 5),
+        answer: personalizeAnswer(baseQuestion.answer, variations[i])
+      };
+      additionalQuestions.push(variation);
+    }
+  });
+  
+  return additionalQuestions;
+};
+
 // Generate therapeutic area specific questions
 const generateTherapeuticAreaQuestions = () => {
-  const therapeuticAreas = ['Oncology', 'Cardiology', 'Neurology', 'Immunology', 'Rare Disease', 'Infectious Disease'];
+  const therapeuticAreas = ['Oncology', 'Cardiology', 'Neurology', 'Immunology', 'Rare Disease', 'Infectious Disease', 'Dermatology', 'Gastroenterology', 'Endocrinology', 'Pulmonology'];
   const additionalQuestions = [];
   
   therapeuticAreas.forEach(area => {
-    trainingQuestions.slice(0, 50).forEach((baseQuestion, index) => {
+    trainingQuestions.slice(0, 30).forEach((baseQuestion, index) => {
       const areaSpecificQuestion = {
         ...baseQuestion,
         id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
         question: baseQuestion.question.replace(/your|our|the/, `${area} `),
+        answer: personalizeAnswerForArea(baseQuestion.answer, area),
         therapeuticAreas: [area],
         tags: [...baseQuestion.tags, area]
       };
@@ -363,17 +536,40 @@ const generateTherapeuticAreaQuestions = () => {
   return additionalQuestions;
 };
 
+// Generate role-specific questions
+const generateRoleSpecificQuestions = () => {
+  const roles = ['Data Scientist', 'Regulatory Affairs', 'Clinical Researcher', 'Quality Assurance', 'IT Manager', 'Executive', 'Legal Counsel', 'Compliance Officer'];
+  const additionalQuestions = [];
+  
+  roles.forEach(role => {
+    trainingQuestions.slice(0, 25).forEach((baseQuestion, index) => {
+      const roleSpecificQuestion = {
+        ...baseQuestion,
+        id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
+        question: `As a ${role}, ${baseQuestion.question.toLowerCase()}`,
+        answer: personalizeAnswerForRole(baseQuestion.answer, role),
+        personas: [role],
+        tags: [...baseQuestion.tags, role]
+      };
+      additionalQuestions.push(roleSpecificQuestion);
+    });
+  });
+  
+  return additionalQuestions;
+};
+
 // Generate AI model type specific questions
 const generateAIModelQuestions = () => {
-  const aiModelTypes = ['Generative AI', 'Computer Vision', 'NLP', 'Traditional ML', 'Deep Learning', 'Reinforcement Learning'];
+  const aiModelTypes = ['Generative AI', 'Computer Vision', 'NLP', 'Traditional ML', 'Deep Learning', 'Reinforcement Learning', 'Transfer Learning', 'Federated Learning'];
   const additionalQuestions = [];
   
   aiModelTypes.forEach(modelType => {
-    trainingQuestions.slice(0, 30).forEach((baseQuestion, index) => {
+    trainingQuestions.slice(0, 20).forEach((baseQuestion, index) => {
       const modelSpecificQuestion = {
         ...baseQuestion,
         id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
         question: baseQuestion.question.replace(/AI|artificial intelligence/, modelType),
+        answer: personalizeAnswerForModel(baseQuestion.answer, modelType),
         aiModelTypes: [modelType],
         tags: [...baseQuestion.tags, modelType]
       };
@@ -384,6 +580,121 @@ const generateAIModelQuestions = () => {
   return additionalQuestions;
 };
 
+// Generate deployment scenario questions
+const generateDeploymentQuestions = () => {
+  const scenarios = ['Clinical Trials', 'Drug Discovery', 'Medical Imaging', 'Patient Monitoring', 'Diagnostic Support', 'Treatment Planning', 'Research', 'Manufacturing'];
+  const additionalQuestions = [];
+  
+  scenarios.forEach(scenario => {
+    trainingQuestions.slice(0, 15).forEach((baseQuestion, index) => {
+      const scenarioSpecificQuestion = {
+        ...baseQuestion,
+        id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
+        question: `For ${scenario} deployment, ${baseQuestion.question.toLowerCase()}`,
+        answer: personalizeAnswerForScenario(baseQuestion.answer, scenario),
+        deploymentScenarios: [scenario],
+        tags: [...baseQuestion.tags, scenario]
+      };
+      additionalQuestions.push(scenarioSpecificQuestion);
+    });
+  });
+  
+  return additionalQuestions;
+};
+
+// Generate urgency-specific questions
+const generateUrgencyQuestions = () => {
+  const urgencyLevels = ['urgent', 'critical', 'high priority', 'immediate', 'asap'];
+  const additionalQuestions = [];
+  
+  urgencyLevels.forEach(urgency => {
+    trainingQuestions.slice(0, 10).forEach((baseQuestion, index) => {
+      const urgencySpecificQuestion = {
+        ...baseQuestion,
+        id: `training-${trainingQuestions.length + additionalQuestions.length + 1}`,
+        question: `This is ${urgency}: ${baseQuestion.question}`,
+        answer: personalizeAnswerForUrgency(baseQuestion.answer, urgency),
+        impactLevel: 'high',
+        tags: [...baseQuestion.tags, urgency]
+      };
+      additionalQuestions.push(urgencySpecificQuestion);
+    });
+  });
+  
+  return additionalQuestions;
+};
+
+// Helper functions for personalization
+function personalizeAnswer(answer, question) {
+  // Add slight variations to make answers feel more natural
+  const variations = [
+    answer,
+    answer.replace(/Here's/, 'Here is'),
+    answer.replace(/You need/, 'Your organization needs'),
+    answer.replace(/This section/, 'The assessment section'),
+    answer.replace(/Key requirements/, 'Main requirements'),
+    answer.replace(/Important/, 'Critical'),
+    answer.replace(/Must/, 'Should'),
+    answer.replace(/Should/, 'Need to'),
+    answer.replace(/Can/, 'Are able to'),
+    answer.replace(/Will/, 'Should'),
+    answer.replace(/Have/, 'Must have'),
+    answer.replace(/Get/, 'Obtain'),
+    answer.replace(/Make/, 'Create'),
+    answer.replace(/Do/, 'Perform')
+  ];
+  
+  return variations[Math.floor(Math.random() * variations.length)];
+}
+
+function personalizeAnswerForArea(answer, area) {
+  return answer.replace(/your organization/g, `${area} organizations`)
+              .replace(/your therapeutic area/g, area)
+              .replace(/your field/g, `${area} field`)
+              .replace(/your industry/g, `${area} industry`);
+}
+
+function personalizeAnswerForRole(answer, role) {
+  const roleContext = {
+    'Data Scientist': 'As a data scientist, you should focus on technical implementation and validation.',
+    'Regulatory Affairs': 'From a regulatory perspective, compliance is critical for approvals.',
+    'Clinical Researcher': 'In clinical research, patient safety and data integrity are paramount.',
+    'Quality Assurance': 'QA teams should emphasize documentation and process validation.',
+    'IT Manager': 'IT infrastructure and security are key considerations.',
+    'Executive': 'From an executive viewpoint, risk management and business impact matter most.',
+    'Legal Counsel': 'Legal compliance and risk mitigation are primary concerns.',
+    'Compliance Officer': 'Compliance officers should focus on regulatory adherence and documentation.'
+  };
+  
+  return `${roleContext[role]} ${answer}`;
+}
+
+function personalizeAnswerForModel(answer, modelType) {
+  return answer.replace(/AI models/g, `${modelType} models`)
+              .replace(/AI systems/g, `${modelType} systems`)
+              .replace(/artificial intelligence/g, modelType)
+              .replace(/machine learning/g, modelType);
+}
+
+function personalizeAnswerForScenario(answer, scenario) {
+  return answer.replace(/AI applications/g, `${scenario} AI applications`)
+              .replace(/AI systems/g, `${scenario} AI systems`)
+              .replace(/AI models/g, `${scenario} AI models`);
+}
+
+function personalizeAnswerForUrgency(answer, urgency) {
+  const urgencyContext = {
+    'urgent': 'This is urgent and requires immediate attention.',
+    'critical': 'This is critical and cannot be delayed.',
+    'high priority': 'This is high priority and should be addressed quickly.',
+    'immediate': 'This needs immediate action.',
+    'asap': 'This should be handled as soon as possible.'
+  };
+  
+  return `${urgencyContext[urgency]} ${answer}`;
+}
+
+
 async function seedAskRexiTrainingData() {
   try {
     console.log('🌱 Starting AskRexi training data seeding...');
@@ -392,8 +703,13 @@ async function seedAskRexiTrainingData() {
     const allQuestions = [
       ...trainingQuestions,
       ...generateAdditionalQuestions(),
+      ...generateScenarioQuestions(),
+      ...generateComprehensiveQuestions(),
       ...generateTherapeuticAreaQuestions(),
-      ...generateAIModelQuestions()
+      ...generateRoleSpecificQuestions(),
+      ...generateAIModelQuestions(),
+      ...generateDeploymentQuestions(),
+      ...generateUrgencyQuestions()
     ];
     
     console.log(`📊 Generated ${allQuestions.length} training questions`);

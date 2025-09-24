@@ -1553,7 +1553,7 @@ const CompleteAssessmentView: React.FC<CompleteAssessmentViewProps> = ({
                 </Badge>
                 <Badge variant="outline" className="bg-compliance-100 text-compliance-800 border-compliance-300">
                   <Award className="h-4 w-4 mr-1" />
-                  4 Critical Sections
+                  {assessmentSections.filter(section => section.isCritical).length} Critical Sections
                 </Badge>
               </div>
             </div>

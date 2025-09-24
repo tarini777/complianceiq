@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { agentManager } from '@/lib/askrexi/agents/AgentManager';
 import crypto from 'crypto';
 
 interface AskRexiQuery {
@@ -32,9 +33,10 @@ interface ConversationMessage {
 
 interface AskRexiResponse {
   answer: string;
-  category: 'regulatory' | 'assessment' | 'analytics' | 'general';
+  category: 'regulatory' | 'assessment' | 'analytics' | 'general' | 'compliance';
+  subcategory?: string;
   sources: {
-    type: 'regulation' | 'guidance' | 'analytics' | 'assessment';
+    type: 'regulation' | 'guidance' | 'analytics' | 'assessment' | 'compliance';
     title: string;
     content: string;
     url?: string;
@@ -42,6 +44,9 @@ interface AskRexiResponse {
   actionItems: string[];
   impactLevel: 'low' | 'medium' | 'high' | 'critical';
   relatedQuestions: string[];
+  confidence?: number;
+  agentUsed?: string;
+  subAgentUsed?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -105,8 +110,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Process the question and generate response
-    const response = await processAskRexiQuery(question, context);
+    // Process the question using the new agent system
+    const response = await agentManager.processQuestion(question, context);
     
     // Cache the response
     await cacheResponse(questionHash, question, response);
@@ -167,17 +172,40 @@ async function processAskRexiQuery(question: string, context?: any): Promise<Ask
 
 // New helper functions for training data and caching
 async function checkNonContextualQuestion(question: string): Promise<{ category: string } | null> {
-  // Mock patterns for non-contextual questions
+  const questionLower = question.toLowerCase();
+  
+  // Check if it's a compliance-related question first
+  const complianceKeywords = [
+    'fda', 'ema', 'ich', 'regulation', 'guideline', 'compliance', 'regulatory',
+    'assessment', 'question', 'section', 'requirement', 'evidence', 'documentation',
+    'analytics', 'report', 'performance', 'score', 'trend', 'metric', 'dashboard',
+    'ai', 'artificial intelligence', 'machine learning', 'model', 'algorithm',
+    'pharmaceutical', 'pharma', 'drug', 'medicine', 'therapeutic', 'clinical',
+    'quality', 'governance', 'risk', 'safety', 'efficacy', 'validation'
+  ];
+  
+  // If it contains compliance keywords, it's contextual
+  if (complianceKeywords.some(keyword => questionLower.includes(keyword))) {
+    return null;
+  }
+  
+  // Only check for non-contextual patterns if no compliance keywords found
   const patterns = [
-    { pattern: 'hello|hi|hey', category: 'greeting' },
-    { pattern: 'what is|what are|define', category: 'definition' },
-    { pattern: 'how to|how do i', category: 'instruction' },
-    { pattern: 'when|where|who', category: 'information' }
+    { pattern: 'weather|temperature|rain|snow|sunny|cloudy|forecast|climate', category: 'weather' },
+    { pattern: 'football|soccer|basketball|baseball|tennis|golf|sports|game|match|team|player', category: 'sports' },
+    { pattern: 'movie|film|actor|actress|celebrity|music|song|band|concert|entertainment', category: 'entertainment' },
+    { pattern: 'politics|election|president|government|news|current events|trump|biden', category: 'news' },
+    { pattern: 'personal health|medical advice|doctor|symptoms|illness|disease|treatment', category: 'health' },
+    { pattern: 'smartphone|phone|computer|laptop|gaming|video game|social media|facebook|twitter', category: 'technology' },
+    { pattern: 'travel|vacation|hotel|flight|airline|tourism|destination|trip', category: 'travel' },
+    { pattern: 'recipe|cooking|food|restaurant|meal|ingredient|kitchen|chef', category: 'food' },
+    { pattern: 'shopping|store|price|buy|purchase|deal|discount|retail', category: 'shopping' },
+    { pattern: 'history|geography|science|math|literature|art|culture|philosophy', category: 'general knowledge' }
   ];
   
   for (const pattern of patterns) {
     const regex = new RegExp(pattern.pattern, 'i');
-    if (regex.test(question)) {
+    if (regex.test(questionLower)) {
       return { category: pattern.category };
     }
   }
@@ -212,67 +240,263 @@ async function logUsageAnalytics(question: string, category: string, responseTim
 }
 
 async function findTrainingDataMatch(question: string, context?: any): Promise<AskRexiResponse | null> {
-  // Mock training data - in a real implementation, this would query the training database
-  const mockTrainingData = [
-    {
-      question: "what is ai compliance",
-      answer: "AI compliance refers to ensuring that artificial intelligence systems meet regulatory requirements, ethical standards, and industry best practices.",
-      category: "definition",
-      keywords: ["ai", "compliance", "regulatory"]
-    },
-    {
-      question: "how to validate ai models",
-      answer: "AI model validation involves testing model performance, bias detection, explainability assessment, and regulatory compliance verification.",
-      category: "process",
-      keywords: ["validation", "models", "testing"]
+  try {
+    const normalizedQuestion = question.toLowerCase().trim();
+    const questionKeywords = extractKeywords(normalizedQuestion);
+    
+    // Enhanced search with multiple strategies
+    const searchConditions: any[] = [
+      // Exact question match
+      { question: { equals: question, mode: 'insensitive' } },
+      // Exact variation match
+      { variations: { has: normalizedQuestion } },
+      // Partial question match (contains)
+      { question: { contains: normalizedQuestion, mode: 'insensitive' } },
+      // Partial variation match
+      { variations: { hasSome: [normalizedQuestion] } },
+      // Keyword-based matching
+      { keywords: { hasSome: questionKeywords } }
+    ];
+
+    // Add regulatory-specific search if applicable
+    if (isRegulatoryQuestion(normalizedQuestion)) {
+      const regulatoryTerms = extractRegulatoryTerms(normalizedQuestion);
+      regulatoryTerms.forEach(term => {
+        searchConditions.push(
+          { 
+            AND: [
+              { category: 'regulatory' },
+              { question: { contains: term, mode: 'insensitive' } }
+            ]
+          }
+        );
+        searchConditions.push(
+          { 
+            AND: [
+              { category: 'regulatory' },
+              { keywords: { has: term } }
+            ]
+          }
+        );
+      });
     }
+
+    const trainingData = await prisma.askRexiTrainingData.findMany({
+      where: {
+        OR: searchConditions
+      },
+      take: 10 // Increased to get more potential matches
+    });
+
+    if (trainingData.length === 0) {
+      return null;
+    }
+
+    // Enhanced matching algorithm with scoring
+    const scoredMatches = trainingData.map(data => ({
+      data,
+      score: calculateMatchScore(data, normalizedQuestion, questionKeywords)
+    })).sort((a, b) => b.score - a.score);
+
+    // Use the highest scoring match
+    const bestMatch = scoredMatches[0].data;
+
+    // Generate human-like, succinct response without introduction
+    const humanLikeAnswer = generateHumanLikeResponse(bestMatch, question);
+    
+    // Generate specific citation links
+    const sources = generateCitationLinks(bestMatch);
+
+    return {
+      answer: humanLikeAnswer,
+      category: bestMatch.category as 'regulatory' | 'assessment' | 'analytics' | 'general',
+      sources,
+      actionItems: bestMatch.actionItems || [],
+      impactLevel: bestMatch.impactLevel as 'low' | 'medium' | 'high' | 'critical',
+      relatedQuestions: generateRelatedQuestions(bestMatch.category, question)
+    };
+  } catch (error) {
+    console.error('Error finding training data match:', error);
+    return null;
+  }
+}
+
+// Generate human-like, succinct responses without introductions
+function generateHumanLikeResponse(trainingData: any, originalQuestion: string): string {
+  let answer = trainingData.answer;
+  
+  // Remove common introduction phrases for trained questions
+  const introPhrases = [
+    /^I'm AskRexi, your.*?assistant\./i,
+    /^Based on your question.*?,/i,
+    /^Here's what I found.*?:/i,
+    /^Let me help you.*?\./i,
+    /^I can help you.*?\./i,
+    /^Great question!.*?\./i,
+    /^Excellent question.*?\./i
   ];
   
-  const lowerQuestion = question.toLowerCase();
+  // Remove introduction phrases
+  introPhrases.forEach(phrase => {
+    answer = answer.replace(phrase, '').trim();
+  });
   
-  // Try exact match
-  for (const data of mockTrainingData) {
-    if (data.question === lowerQuestion) {
-      return {
-        answer: data.answer,
-        category: data.category as 'regulatory' | 'assessment' | 'analytics' | 'general',
-        sources: [{
-          type: 'guidance' as const,
-          title: 'Training Data',
-          content: data.answer,
-          url: undefined
-        }],
-        actionItems: [],
-        impactLevel: 'medium' as const,
-        relatedQuestions: []
-      };
-    }
+  // Make responses more conversational and direct
+  if (trainingData.category === 'regulatory') {
+    answer = makeRegulatoryResponseHuman(answer);
+  } else if (trainingData.category === 'assessment') {
+    answer = makeAssessmentResponseHuman(answer);
+  } else if (trainingData.category === 'analytics') {
+    answer = makeAnalyticsResponseHuman(answer);
   }
   
-  // Try keyword matching
-  const keywords = extractKeywords(question);
-  for (const data of mockTrainingData) {
-    const hasKeywordMatch = keywords.some(keyword => 
-      data.keywords.some(dataKeyword => dataKeyword.includes(keyword))
-    );
-    if (hasKeywordMatch) {
-      return {
-        answer: data.answer,
-        category: data.category as 'regulatory' | 'assessment' | 'analytics' | 'general',
-        sources: [{
-          type: 'guidance' as const,
-          title: 'Training Data',
-          content: data.answer,
-          url: undefined
-        }],
-        actionItems: [],
-        impactLevel: 'medium' as const,
-        relatedQuestions: []
-      };
-    }
+  return answer.trim();
+}
+
+function makeRegulatoryResponseHuman(answer: string): string {
+  // Replace formal language with more direct, human-like responses
+  answer = answer.replace(/The FDA has issued/g, 'FDA requires');
+  answer = answer.replace(/The European Medicines Agency/g, 'EMA');
+  answer = answer.replace(/The International Council for Harmonisation/g, 'ICH');
+  answer = answer.replace(/comprehensive guidelines/g, 'specific requirements');
+  answer = answer.replace(/Key Requirements:/g, 'Main requirements:');
+  answer = answer.replace(/Core Requirements:/g, 'Key points:');
+  answer = answer.replace(/Key Guidelines:/g, 'Main guidelines:');
+  
+  return answer;
+}
+
+function makeAssessmentResponseHuman(answer: string): string {
+  // Make assessment responses more actionable and direct
+  answer = answer.replace(/The .* section evaluates/g, 'This section checks');
+  answer = answer.replace(/Key Requirements:/g, 'You need:');
+  answer = answer.replace(/Evidence Required:/g, 'Provide these:');
+  answer = answer.replace(/Common Challenges:/g, 'Watch out for:');
+  
+  return answer;
+}
+
+function makeAnalyticsResponseHuman(answer: string): string {
+  // Make analytics responses more conversational
+  answer = answer.replace(/Your current compliance score provides/g, 'Your compliance score shows');
+  answer = answer.replace(/Performance trends analysis shows/g, 'Here are your trends:');
+  answer = answer.replace(/Compliance gap analysis identifies/g, 'Your main gaps are:');
+  
+  return answer;
+}
+
+// Generate specific citation links with real URLs
+function generateCitationLinks(trainingData: any): Array<{
+  type: 'regulation' | 'guidance' | 'analytics' | 'assessment';
+  title: string;
+  content: string;
+  url?: string;
+}> {
+  const sources = [];
+  
+  // Generate specific URLs based on the training data sources
+  if (trainingData.sources && trainingData.sources.length > 0) {
+    trainingData.sources.forEach((source: string) => {
+      const citationUrl = generateCitationUrl(source, trainingData.category);
+      sources.push({
+        type: getCitationType(source),
+        title: source,
+        content: `Official guidance from ${source}`,
+        url: citationUrl
+      });
+    });
   }
   
-  return null;
+  // Add default source if none provided
+  if (sources.length === 0) {
+    sources.push({
+      type: 'guidance' as const,
+      title: 'ComplianceIQ Knowledge Base',
+      content: 'Internal compliance guidance and best practices',
+      url: '/compliance-guidance'
+    });
+  }
+  
+  return sources;
+}
+
+function generateCitationUrl(source: string, category: string): string {
+  // Generate specific URLs based on source and category
+  const sourceLower = source.toLowerCase();
+  
+  // FDA sources
+  if (sourceLower.includes('fda')) {
+    if (sourceLower.includes('ai/ml action plan')) {
+      return 'https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-software-medical-device';
+    }
+    if (sourceLower.includes('gmlp')) {
+      return 'https://www.fda.gov/medical-devices/software-medical-device-samd/good-machine-learning-practice-medical-device-development';
+    }
+    if (sourceLower.includes('samd')) {
+      return 'https://www.fda.gov/medical-devices/software-medical-device-samd';
+    }
+    return 'https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-software-medical-device';
+  }
+  
+  // EMA sources
+  if (sourceLower.includes('ema')) {
+    if (sourceLower.includes('reflection paper')) {
+      return 'https://www.ema.europa.eu/en/documents/scientific-guideline/reflection-paper-artificial-intelligence-medicinal-product-development_en.pdf';
+    }
+    return 'https://www.ema.europa.eu/en/about-us/how-we-work/scientific-guidelines';
+  }
+  
+  // ICH sources
+  if (sourceLower.includes('ich')) {
+    if (sourceLower.includes('e6')) {
+      return 'https://www.ich.org/page/e6-r3-gcp';
+    }
+    if (sourceLower.includes('e8')) {
+      return 'https://www.ich.org/page/e8-r1-general-considerations-clinical-studies';
+    }
+    return 'https://www.ich.org/';
+  }
+  
+  // GDPR sources
+  if (sourceLower.includes('gdpr')) {
+    return 'https://gdpr.eu/';
+  }
+  
+  // EU AI Act
+  if (sourceLower.includes('eu ai act')) {
+    return 'https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai';
+  }
+  
+  // Default category-based URLs
+  switch (category) {
+    case 'regulatory':
+      return '/regulatory-guidance';
+    case 'assessment':
+      return '/assessment-support';
+    case 'analytics':
+      return '/analytics-dashboard';
+    default:
+      return '/compliance-guidance';
+  }
+}
+
+function getCitationType(source: string): 'regulation' | 'guidance' | 'analytics' | 'assessment' {
+  const sourceLower = source.toLowerCase();
+  
+  if (sourceLower.includes('fda') || sourceLower.includes('ema') || sourceLower.includes('ich') || sourceLower.includes('gdpr')) {
+    return 'regulation';
+  }
+  if (sourceLower.includes('guideline') || sourceLower.includes('guidance') || sourceLower.includes('framework')) {
+    return 'guidance';
+  }
+  if (sourceLower.includes('analytics') || sourceLower.includes('dashboard') || sourceLower.includes('score')) {
+    return 'analytics';
+  }
+  if (sourceLower.includes('assessment') || sourceLower.includes('question') || sourceLower.includes('section')) {
+    return 'assessment';
+  }
+  
+  return 'guidance';
 }
 
 function convertTrainingDataToResponse(trainingData: any): AskRexiResponse {
@@ -280,10 +504,10 @@ function convertTrainingDataToResponse(trainingData: any): AskRexiResponse {
     answer: trainingData.answer,
     category: trainingData.category as any,
     sources: trainingData.sources.map((source: string) => ({
-      type: 'regulation' as const,
+      type: 'guidance' as const,
       title: source,
       content: `Information from ${source}`,
-      url: `/regulatory/${source.toLowerCase().replace(/\s+/g, '-')}`
+      url: generateCitationUrl(source, trainingData.category)
     })),
     actionItems: trainingData.actionItems,
     impactLevel: trainingData.impactLevel as any,
@@ -303,6 +527,85 @@ function extractKeywords(question: string): string[] {
   
   const questionLower = question.toLowerCase();
   return contextualKeywords.filter(keyword => questionLower.includes(keyword));
+}
+
+// Helper function to determine if a question is regulatory
+function isRegulatoryQuestion(question: string): boolean {
+  const regulatoryTerms = ['fda', 'ema', 'ich', 'regulation', 'guideline', 'compliance', 'regulatory', 'clinical trial', 'gcp', 'gmp', 'glp'];
+  return regulatoryTerms.some(term => question.includes(term));
+}
+
+// Helper function to extract regulatory terms from question
+function extractRegulatoryTerms(question: string): string[] {
+  const regulatoryTerms = ['fda', 'ema', 'ich', 'regulation', 'guideline', 'compliance', 'regulatory', 'clinical trial', 'gcp', 'gmp', 'glp'];
+  return regulatoryTerms.filter(term => question.includes(term));
+}
+
+// Helper function to calculate match score
+function calculateMatchScore(trainingData: any, question: string, questionKeywords: string[]): number {
+  let score = 0;
+  
+  // Exact question match gets highest score
+  if (trainingData.question.toLowerCase() === question) {
+    score += 100;
+  }
+  
+  // Exact variation match gets high score
+  if (trainingData.variations.some((variation: string) => variation.toLowerCase() === question)) {
+    score += 90;
+  }
+  
+  // Partial question match gets medium score
+  if (trainingData.question.toLowerCase().includes(question) || question.includes(trainingData.question.toLowerCase())) {
+    score += 70;
+  }
+  
+  // Partial variation match gets medium score
+  if (trainingData.variations.some((variation: string) => 
+    variation.toLowerCase().includes(question) || question.includes(variation.toLowerCase())
+  )) {
+    score += 60;
+  }
+  
+  // ICH-specific scoring - prioritize exact ICH guideline matches
+  if (question.includes('ich') && trainingData.question.toLowerCase().includes('ich')) {
+    // Extract ICH guideline numbers from question and training data
+    const questionICHMatch = question.match(/ich\s+([e|q|m]\d+)/i);
+    const trainingICHMatch = trainingData.question.toLowerCase().match(/ich\s+([e|q|m]\d+)/i);
+    
+    if (questionICHMatch && trainingICHMatch) {
+      // Exact ICH guideline match gets highest priority
+      if (questionICHMatch[1].toLowerCase() === trainingICHMatch[1].toLowerCase()) {
+        score += 95;
+      } else {
+        // Different ICH guideline gets lower score
+        score -= 50;
+      }
+    } else if (questionICHMatch || trainingICHMatch) {
+      // One has specific guideline, other doesn't - moderate boost
+      score += 30;
+    }
+  }
+  
+  // Keyword matches get lower scores
+  const keywordMatches = trainingData.keywords.filter((keyword: string) => 
+    questionKeywords.includes(keyword.toLowerCase())
+  ).length;
+  score += keywordMatches * 10;
+  
+  // Boost score for regulatory questions matching regulatory category
+  if (isRegulatoryQuestion(question) && trainingData.category === 'regulatory') {
+    score += 20;
+  }
+  
+  // Boost score for exact regulatory term matches
+  const regulatoryTerms = extractRegulatoryTerms(question);
+  const regulatoryMatches = trainingData.keywords.filter((keyword: string) => 
+    regulatoryTerms.includes(keyword.toLowerCase())
+  ).length;
+  score += regulatoryMatches * 15;
+  
+  return score;
 }
 
 // Intelligent conversation analysis functions
@@ -673,13 +976,13 @@ async function handleRegulatoryQuery(question: string, context?: any): Promise<A
   });
 
   const sources = [
-    ...regulatoryData.map(reg => ({
+    ...regulatoryData.map((reg: any) => ({
       type: 'regulation' as const,
       title: reg.title,
       content: reg.content.substring(0, 300) + '...',
       url: `/regulatory/${reg.id}`
     })),
-    ...guidanceData.map(guidance => ({
+    ...guidanceData.map((guidance: any) => ({
       type: 'guidance' as const,
       title: guidance.title,
       content: guidance.description,
@@ -719,7 +1022,7 @@ async function handleAssessmentQuery(question: string, context?: any): Promise<A
     take: 5
   });
 
-  const sources = questions.map(q => ({
+  const sources = questions.map((q: any) => ({
     type: 'assessment' as const,
     title: q.questionText.substring(0, 100) + '...',
     content: q.guidanceContent[0]?.description || 'Assessment question guidance',
@@ -728,7 +1031,7 @@ async function handleAssessmentQuery(question: string, context?: any): Promise<A
 
   const answer = generateAssessmentResponse(question, questions);
   const actionItems = extractAssessmentActionItems(questions);
-  const impactLevel = questions.some(q => (q as any).isProductionBlocker) ? 'critical' : 'medium';
+  const impactLevel = questions.some((q: any) => (q as any).isProductionBlocker) ? 'critical' : 'medium';
 
   return {
     answer,
@@ -784,15 +1087,44 @@ async function handleAnalyticsQuery(question: string, context?: any): Promise<As
 }
 
 async function handleGeneralQuery(question: string, context?: any): Promise<AskRexiResponse> {
+  // Only show introduction for truly general questions, not for trained questions
+  const isGeneralQuestion = !extractKeywords(question).length;
+  
+  if (isGeneralQuestion) {
+    return {
+      answer: `I can help you with regulatory intelligence, assessment guidance, and analytics insights. What specific compliance topic would you like to know about?`,
+      category: 'general',
+      sources: [],
+      actionItems: [
+        'Ask about specific FDA or EMA regulations',
+        'Get guidance on assessment questions',
+        'Request analytics and performance insights',
+        'Learn about compliance requirements'
+      ],
+      impactLevel: 'low',
+      relatedQuestions: [
+        'What are the latest FDA guidelines for AI in healthcare?',
+        'How do I complete the data governance assessment section?',
+        'What is our current compliance score?',
+        'What regulations apply to our therapeutic area?'
+      ]
+    };
+  }
+  
+  // For questions with compliance keywords but no training match, provide helpful guidance
   return {
-    answer: `I'm AskRexi, your regulatory compliance assistant. I can help you with regulatory intelligence, assessment guidance, and analytics insights. Could you please be more specific about what you'd like to know?`,
+    answer: `I can help with compliance questions, but I need more specific information. Try asking about specific regulations (FDA, EMA, ICH), assessment sections, or analytics metrics.`,
     category: 'general',
-    sources: [],
+    sources: [{
+      type: 'guidance' as const,
+      title: 'ComplianceIQ Help Center',
+      content: 'General compliance guidance and support',
+      url: '/help-center'
+    }],
     actionItems: [
-      'Ask about specific FDA or EMA regulations',
-      'Get guidance on assessment questions',
-      'Request analytics and performance insights',
-      'Learn about compliance requirements'
+      'Be more specific about your compliance question',
+      'Mention relevant regulations or assessment areas',
+      'Ask about specific compliance requirements'
     ],
     impactLevel: 'low',
     relatedQuestions: [

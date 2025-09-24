@@ -9,6 +9,9 @@ const nextConfig = {
   images: {
     domains: [],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
 }
 
 module.exports = nextConfig

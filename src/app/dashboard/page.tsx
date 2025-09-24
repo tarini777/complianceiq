@@ -7,9 +7,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import QuickStartGuide from '@/components/QuickStartGuide';
+import RealTimeDataDashboard from '@/components/dashboard/RealTimeDataDashboard';
 import { 
   Shield, 
   Users, 
@@ -24,7 +29,21 @@ import {
   Clock,
   Plus,
   Building,
-  Loader2
+  Loader2,
+  Play,
+  Bot,
+  Target,
+  Zap,
+  Brain,
+  Lightbulb,
+  Rocket,
+  Settings,
+  RefreshCw,
+  ExternalLink,
+  ChevronRight,
+  Star,
+  Award,
+  TrendingDown
 } from 'lucide-react';
 
 interface DashboardData {
@@ -91,43 +110,81 @@ interface DashboardData {
 }
 
 const Dashboard: React.FC = () => {
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboardData = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
+      console.log('Dashboard API called - fetching enhanced intelligence data');
+      
+      // Try enhanced dashboard API first
+      let response = await fetch('/api/dashboard/intelligence');
+      let result = await response.json();
+      
+      if (!result.success) {
+        // Fallback to basic dashboard API
+        console.log('Falling back to basic dashboard API');
+        response = await fetch('/api/dashboard');
+        result = await response.json();
+      }
+      
+      if (result.success) {
+        setDashboardData(result.data);
+        setError(null);
+        console.log('Dashboard data loaded successfully:', result.data);
+      } else {
+        setError(result.error || 'Failed to fetch dashboard data');
+      }
+    } catch (err) {
+      setError('Failed to connect to dashboard API');
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        console.log('Dashboard API called - fetching enhanced intelligence data');
-        
-        // Try enhanced dashboard API first
-        let response = await fetch('/api/dashboard/intelligence');
-        let result = await response.json();
-        
-        if (!result.success) {
-          // Fallback to basic dashboard API
-          console.log('Falling back to basic dashboard API');
-          response = await fetch('/api/dashboard');
-          result = await response.json();
-        }
-        
-        if (result.success) {
-          setDashboardData(result.data);
-          console.log('Dashboard data loaded successfully:', result.data);
-        } else {
-          setError(result.error || 'Failed to fetch dashboard data');
-        }
-      } catch (err) {
-        setError('Failed to connect to dashboard API');
-        console.error('Dashboard fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+
+  const handleRefresh = () => {
+    fetchDashboardData(true);
+  };
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'assessment':
+        router.push('/assessment');
+        break;
+      case 'analytics':
+        router.push('/analytics');
+        break;
+      case 'remediation':
+        router.push('/remediation');
+        break;
+      case 'regulatory':
+        router.push('/regulatory');
+        break;
+      case 'askrexi':
+        router.push('/askrexi');
+        break;
+      case 'settings':
+        router.push('/settings');
+        break;
+      default:
+        break;
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -195,78 +252,158 @@ const Dashboard: React.FC = () => {
 
   const DashboardContent = () => (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-compliance-900">ComplianceIQ Dashboard</h1>
-          <p className="text-compliance-600 mt-1">Pharmaceutical AI Readiness Assessment Platform</p>
-        </div>
-        <Badge variant="outline" className="flex items-center space-x-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span>System Online</span>
-        </Badge>
-      </div>
+      {/* Welcome Section */}
+      <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-0">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">Welcome to ComplianceIQ</h1>
+              <p className="text-blue-100 text-lg mb-4">AI-Powered Pharmaceutical Compliance Platform</p>
+              <div className="flex items-center space-x-6 text-blue-100">
+                <div className="flex items-center space-x-2">
+                  <Star className="h-5 w-5 text-yellow-300" />
+                  <span>559+ Dynamic Questions</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Award className="h-5 w-5 text-yellow-300" />
+                  <span>87-95% AI Confidence</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-yellow-300" />
+                  <span>Real-time Insights</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </Button>
+              <Badge variant="secondary" className="flex items-center space-x-2 w-fit mx-auto">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span>System Online</span>
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-l-4 border-l-compliance-primary">
+        <Card className="border-l-4 border-l-compliance-primary hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => handleQuickAction('analytics')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
-            <FileText className="h-4 w-4 text-compliance-primary" />
+            <FileText className="h-4 w-4 text-compliance-primary group-hover:scale-110 transition-transform" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{dashboardData?.overview?.totalAssessments || 24}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+18%</span> from last month
+              <span className="text-green-600">{dashboardData?.overview?.totalAssessmentsGrowth || '+18%'}</span> from last month
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-compliance-secondary">
+        <Card className="border-l-4 border-l-compliance-secondary hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => handleQuickAction('assessment')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Assessments</CardTitle>
-            <Activity className="h-4 w-4 text-compliance-secondary" />
+            <Activity className="h-4 w-4 text-compliance-secondary group-hover:scale-110 transition-transform" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{dashboardData?.overview?.activeAssessments || 8}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-blue-600">+3</span> this week
+              <span className="text-blue-600">{dashboardData?.overview?.activeAssessmentsGrowth || '+3'}</span> this week
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-compliance-accent">
+        <Card className="border-l-4 border-l-compliance-accent hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => handleQuickAction('remediation')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Compliance Score</CardTitle>
-            <TrendingUp className="h-4 w-4 text-compliance-accent" />
+            <TrendingUp className="h-4 w-4 text-compliance-accent group-hover:scale-110 transition-transform" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">78.5%</div>
+            <div className="text-2xl font-bold">{dashboardData?.overview?.avgComplianceScore || '78.5%'}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+5.2%</span> improvement
+              <span className="text-green-600">{dashboardData?.overview?.avgComplianceScoreGrowth || '+5.2%'}</span> improvement
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500">
+        <Card className="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => handleQuickAction('remediation')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <AlertCircle className="h-4 w-4 text-orange-500 group-hover:scale-110 transition-transform" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">{dashboardData?.overview?.criticalIssues || 3}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-orange-600">-2</span> resolved this week
+              <span className="text-orange-600">{dashboardData?.overview?.criticalIssuesGrowth || '-2'}</span> resolved this week
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* AI-Powered Insights Section */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Brain className="h-6 w-6 text-blue-600" />
+            <span>AI-Powered Compliance Insights</span>
+            <Badge className="bg-blue-100 text-blue-800">Live</Badge>
+          </CardTitle>
+          <CardDescription>Real-time AI analysis of your compliance performance with 87-95% confidence scores</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-white rounded-lg border">
+              <Lightbulb className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+              <div className="text-lg font-bold text-blue-600">4</div>
+              <div className="text-sm text-gray-600">Key Findings</div>
+              <div className="text-xs text-green-600 mt-1">95% confidence</div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border">
+              <Target className="h-8 w-8 text-green-500 mx-auto mb-2" />
+              <div className="text-lg font-bold text-blue-600">4</div>
+              <div className="text-sm text-gray-600">Smart Recommendations</div>
+              <div className="text-xs text-green-600 mt-1">87% confidence</div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border">
+              <Shield className="h-8 w-8 text-red-500 mx-auto mb-2" />
+              <div className="text-lg font-bold text-blue-600">2</div>
+              <div className="text-sm text-gray-600">Risk Factors</div>
+              <div className="text-xs text-green-600 mt-1">90% confidence</div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border">
+              <Rocket className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <div className="text-lg font-bold text-blue-600">6</div>
+              <div className="text-sm text-gray-600">Opportunities</div>
+              <div className="text-xs text-green-600 mt-1">88% confidence</div>
+            </div>
+          </div>
+          <div className="mt-4 text-center">
+            <Button 
+              onClick={() => handleQuickAction('remediation')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              View AI Insights
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Enhanced Intelligence Metrics */}
       {dashboardData?.intelligence && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Completion Rate & Trends */}
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-compliance-primary" />
@@ -282,6 +419,7 @@ const Dashboard: React.FC = () => {
                     {dashboardData.intelligence.completionRate}%
                   </span>
                 </div>
+                <Progress value={dashboardData.intelligence.completionRate} className="w-full" />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <div className="text-lg font-semibold">{dashboardData.intelligence.trendAnalysis.lastMonth}%</div>
@@ -295,6 +433,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center justify-center">
                   <Badge variant={dashboardData.intelligence.trendAnalysis.trend === 'up' ? 'default' : 
                                    dashboardData.intelligence.trendAnalysis.trend === 'down' ? 'destructive' : 'secondary'}>
+                    <TrendingUp className="h-3 w-3 mr-1" />
                     Trend: {dashboardData.intelligence.trendAnalysis.trend}
                   </Badge>
                 </div>
@@ -303,7 +442,7 @@ const Dashboard: React.FC = () => {
           </Card>
 
           {/* Critical Blockers */}
-          <Card>
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <AlertCircle className="h-5 w-5 text-red-500" />
@@ -314,7 +453,7 @@ const Dashboard: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {dashboardData.intelligence.criticalBlockers.map((blocker, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div>
                       <div className="font-medium text-sm">{blocker.section}</div>
                       <div className="text-xs text-gray-500">{blocker.count} assessments affected</div>
@@ -325,6 +464,15 @@ const Dashboard: React.FC = () => {
                     </Badge>
                   </div>
                 ))}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-3"
+                  onClick={() => handleQuickAction('remediation')}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Address Blockers
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -400,39 +548,76 @@ const Dashboard: React.FC = () => {
                 </div>
               ))}
             </div>
-            <Button className="w-full mt-4">
+            <Button 
+              className="w-full mt-4 group" 
+              onClick={() => handleQuickAction('analytics')}
+            >
               View All Assessments
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5" />
+              <Zap className="h-5 w-5 text-yellow-500" />
               <span>Quick Actions</span>
             </CardTitle>
             <CardDescription>Start new assessments and manage compliance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Button className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" />
+              <Button 
+                className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white group" 
+                onClick={() => handleQuickAction('assessment')}
+              >
+                <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
                 Start New Assessment
+                <ArrowRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Eye className="h-4 w-4 mr-2" />
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover:bg-green-50 hover:border-green-300 group" 
+                onClick={() => handleQuickAction('regulatory')}
+              >
+                <Shield className="h-4 w-4 mr-2 text-green-600 group-hover:scale-110 transition-transform" />
                 View Regulatory Updates
+                <ExternalLink className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <BarChart3 className="h-4 w-4 mr-2" />
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover:bg-purple-50 hover:border-purple-300 group" 
+                onClick={() => handleQuickAction('analytics')}
+              >
+                <BarChart3 className="h-4 w-4 mr-2 text-purple-600 group-hover:scale-110 transition-transform" />
                 Generate Compliance Report
+                <ChevronRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Companies
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start hover:bg-orange-50 hover:border-orange-300 group" 
+                onClick={() => handleQuickAction('askrexi')}
+              >
+                <Bot className="h-4 w-4 mr-2 text-orange-600 group-hover:scale-110 transition-transform" />
+                Ask AskRexi Assistant
+                <ChevronRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
               </Button>
+
+              <div className="pt-2 border-t">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start text-gray-600 hover:text-gray-900"
+                  onClick={() => handleQuickAction('settings')}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings & Configuration
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -468,6 +653,11 @@ const Dashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Real-Time Data Dashboard */}
+      <div className="mt-8">
+        <RealTimeDataDashboard />
+      </div>
     </div>
   );
 

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 // GET /api/users - Get all users with their roles and organizations
 export async function GET(request: NextRequest) {
   try {

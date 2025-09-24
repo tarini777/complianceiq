@@ -9,6 +9,10 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 const prisma = new PrismaClient();
 
 // Upload document for assessment

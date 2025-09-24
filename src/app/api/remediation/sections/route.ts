@@ -1,35 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
-// Define all 26 sections with their details
-const ALL_SECTIONS = [
-  { id: 'data-governance', title: 'Data Governance & Quality', category: 'critical' },
-  { id: 'model-validation', title: 'Model Validation & Testing', category: 'critical' },
-  { id: 'bias-fairness', title: 'Bias & Fairness Assessment', category: 'high' },
-  { id: 'explainability', title: 'Model Explainability', category: 'high' },
-  { id: 'monitoring', title: 'Model Monitoring & Drift', category: 'critical' },
-  { id: 'security', title: 'AI Security & Privacy', category: 'critical' },
-  { id: 'regulatory-compliance', title: 'Regulatory Compliance', category: 'critical' },
-  { id: 'documentation', title: 'Documentation & Traceability', category: 'medium' },
-  { id: 'risk-management', title: 'Risk Management', category: 'high' },
-  { id: 'change-management', title: 'Change Management', category: 'medium' },
-  { id: 'training-data', title: 'Training Data Management', category: 'high' },
-  { id: 'performance-metrics', title: 'Performance Metrics', category: 'medium' },
-  { id: 'deployment', title: 'Deployment & Operations', category: 'high' },
-  { id: 'incident-response', title: 'Incident Response', category: 'medium' },
-  { id: 'audit-trail', title: 'Audit Trail & Logging', category: 'medium' },
-  { id: 'data-lineage', title: 'Data Lineage & Provenance', category: 'high' },
-  { id: 'version-control', title: 'Model Version Control', category: 'medium' },
-  { id: 'testing-framework', title: 'Testing Framework', category: 'high' },
-  { id: 'governance-framework', title: 'AI Governance Framework', category: 'critical' },
-  { id: 'stakeholder-engagement', title: 'Stakeholder Engagement', category: 'low' },
-  { id: 'training-competency', title: 'Training & Competency', category: 'medium' },
-  { id: 'vendor-management', title: 'Vendor Management', category: 'low' },
-  { id: 'business-continuity', title: 'Business Continuity', category: 'medium' },
-  { id: 'data-observability', title: 'Data Observability', category: 'critical' },
-  { id: 'fda-ai-governance', title: 'FDA AI Governance 2025', category: 'critical' },
-  { id: 'clinical-validation', title: 'Clinical Validation', category: 'high' }
-];
+const prisma = new PrismaClient();
+
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
+// Get sections from database instead of hardcoded array
+async function getAllSections() {
+  const sections = await prisma.assessmentSection.findMany({
+    select: {
+      id: true,
+      title: true,
+      learningComponentsJson: true,
+      isCriticalBlocker: true
+    },
+    orderBy: {
+      sectionNumber: 'asc'
+    }
+  });
+
+  return sections.map(section => {
+    // Parse category from learningComponentsJson or use defaults
+    let category = 'medium';
+    let isCritical = false;
+    
+    if (section.learningComponentsJson) {
+      try {
+        const components = typeof section.learningComponentsJson === 'string' 
+          ? JSON.parse(section.learningComponentsJson) 
+          : section.learningComponentsJson;
+        category = components.category || 'medium';
+        isCritical = components.isCritical || section.isCriticalBlocker;
+      } catch (error) {
+        console.warn(`Error parsing learningComponentsJson for section ${section.id}:`, error);
+      }
+    } else {
+      // Use isCriticalBlocker as fallback
+      isCritical = section.isCriticalBlocker;
+      category = isCritical ? 'critical' : 'medium';
+    }
+
+    return {
+      id: section.id,
+      title: section.title,
+      category,
+      isCritical
+    };
+  });
+}
 
 // Helper function to categorize performance
 function categorizePerformance(score: number, completionRate: number): string {
@@ -41,7 +61,7 @@ function categorizePerformance(score: number, completionRate: number): string {
 }
 
 // Helper function to generate realistic scores
-function generateRealisticScore(sectionId: string, assessments: any[]): number {
+function generateRealisticScore(sectionId: string, assessments: any[], allSections: any[]): number {
   const sectionAssessments = assessments.filter(a => 
     a.assessmentName.toLowerCase().includes(sectionId.replace('-', ' ')) ||
     a.assessmentName.toLowerCase().includes(sectionId.split('-')[0])
@@ -49,7 +69,7 @@ function generateRealisticScore(sectionId: string, assessments: any[]): number {
   
   if (sectionAssessments.length === 0) {
     // Generate based on section category
-    const section = ALL_SECTIONS.find(s => s.id === sectionId);
+    const section = allSections.find(s => s.id === sectionId);
     const baseScore = section?.category === 'critical' ? 45 : 
                      section?.category === 'high' ? 55 : 
                      section?.category === 'medium' ? 65 : 75;
@@ -104,6 +124,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Get all sections from database
+    const ALL_SECTIONS = await getAllSections();
+
     if (sectionId) {
       // Return detailed data for a specific section
       const section = ALL_SECTIONS.find(s => s.id === sectionId);
@@ -119,7 +142,7 @@ export async function GET(request: NextRequest) {
         a.assessmentName.toLowerCase().includes(sectionId.split('-')[0])
       );
 
-      const score = generateRealisticScore(sectionId, assessments);
+      const score = generateRealisticScore(sectionId, assessments, ALL_SECTIONS);
       const completionRate = generateRealisticCompletionRate(sectionId, assessments);
       const performanceLevel = categorizePerformance(score, completionRate);
 
@@ -151,7 +174,7 @@ export async function GET(request: NextRequest) {
 
     // Return overview of all sections
     const sectionsOverview = ALL_SECTIONS.map(section => {
-      const score = generateRealisticScore(section.id, assessments);
+      const score = generateRealisticScore(section.id, assessments, ALL_SECTIONS);
       const completionRate = generateRealisticCompletionRate(section.id, assessments);
       const performanceLevel = categorizePerformance(score, completionRate);
       

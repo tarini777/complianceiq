@@ -86,26 +86,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setSidebarOpen(false);
   };
 
-  // Navigation items - always include Team Collaboration
+  // Navigation items - organized for better UX
   const navigation = [
-    // 🧠 Core Brain Layer
-    { name: 'Dashboard', href: '/', icon: BarChart3 },
-    { name: 'Regulatory Intelligence', href: '/regulatory', icon: Shield },
-    { name: 'Compliance Mapping', href: '/compliance-mapping', icon: Network },
-    { name: 'AskRexi Assistant', href: '/askrexi', icon: Bot },
+    // 🏠 Main Navigation
+    { name: 'Dashboard', href: '/', icon: BarChart3, badge: 'Overview' },
     
-    // 🎯 Assessment Layer  
-    { name: 'Assessment Configuration', href: '/assessment', icon: FileText },
-    { name: 'Team Collaboration', href: '/collaboration', icon: Users, disabled: !isCollaborationEnabled },
-    { name: 'Complete Assessment', href: '/assessment-complete', icon: CheckCircle },
+    // 🧠 Core Features
+    { name: 'Start Assessment', href: '/assessment', icon: FileText, badge: 'Primary', highlight: true },
+    { name: 'Ask AskRexi', href: '/askrexi', icon: Bot, badge: 'AI Assistant' },
     
-    // 📊 Intelligence & Action Layer
-    { name: 'Analytics & Reporting', href: '/analytics', icon: TrendingUp },
-    { name: 'Assessment Remediation Engine', href: '/insights', icon: Zap },
-    { name: 'Remediation Command Center', href: '/remediation', icon: Target },
+    // 📊 Intelligence & Analytics
+    { name: 'Analytics', href: '/analytics', icon: TrendingUp, badge: 'Insights' },
+    { name: 'Regulatory Intel', href: '/regulatory', icon: Shield, badge: 'Live Data' },
+    
+    // 🤝 Collaboration & Team
+    { name: 'Team Collaboration', href: '/collaboration', icon: Users, disabled: !isCollaborationEnabled, badge: 'Team' },
+    
+    // 🔧 Advanced Features
+    { name: 'Assessment Results', href: '/assessment-complete', icon: CheckCircle, badge: 'Results' },
+    { name: 'Remediation Center', href: '/remediation', icon: Target, badge: 'Action Plan' },
+    { name: 'Compliance Mapping', href: '/compliance-mapping', icon: Network, badge: 'Mapping' },
     
     // ⚙️ System
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Settings', href: '/settings', icon: Settings, badge: 'Config' },
   ];
 
   const isActive = (href: string) => {
@@ -138,16 +141,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {navigation.map((item) => {
               const Icon = item.icon;
               const isDisabled = (item as any).disabled;
+              const isHighlighted = (item as any).highlight;
+              const badge = (item as any).badge;
               return (
                 <Link
                   key={item.name}
                   href={isDisabled ? '#' : item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isDisabled
                       ? 'text-muted-foreground cursor-not-allowed opacity-50'
                       : isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : isHighlighted
+                      ? 'text-primary hover:bg-primary/10 hover:shadow-sm border border-primary/20'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm'
                   }`}
                   onClick={(e) => {
                     if (isDisabled) {
@@ -158,9 +165,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }}
                   title={isDisabled ? 'Team Collaboration is disabled in Settings' : undefined}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                  {isDisabled && <span className="text-xs text-muted-foreground ml-auto">(Disabled)</span>}
+                  <div className="flex items-center space-x-3">
+                    <Icon className={`h-5 w-5 ${isHighlighted ? 'text-primary' : ''}`} />
+                    <span>{item.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {badge && (
+                      <Badge 
+                        variant={isHighlighted ? "default" : "secondary"} 
+                        className={`text-xs ${
+                          isHighlighted ? 'bg-primary text-primary-foreground' : ''
+                        }`}
+                      >
+                        {badge}
+                      </Badge>
+                    )}
+                    {isDisabled && <span className="text-xs text-muted-foreground">(Disabled)</span>}
+                  </div>
                 </Link>
               );
             })}
@@ -185,16 +206,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {navigation.map((item) => {
               const Icon = item.icon;
               const isDisabled = (item as any).disabled;
+              const isHighlighted = (item as any).highlight;
+              const badge = (item as any).badge;
               return (
                 <Link
                   key={item.name}
                   href={isDisabled ? '#' : item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isDisabled
                       ? 'text-muted-foreground cursor-not-allowed opacity-50'
                       : isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : isHighlighted
+                      ? 'text-primary hover:bg-primary/10 hover:shadow-sm border border-primary/20'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:shadow-sm'
                   }`}
                   onClick={(e) => {
                     if (isDisabled) {
@@ -205,9 +230,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }}
                   title={isDisabled ? 'Team Collaboration is disabled in Settings' : undefined}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                  {isDisabled && <span className="text-xs text-muted-foreground ml-auto">(Disabled)</span>}
+                  <div className="flex items-center space-x-3">
+                    <Icon className={`h-5 w-5 ${isHighlighted ? 'text-primary' : ''}`} />
+                    <span>{item.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {badge && (
+                      <Badge 
+                        variant={isHighlighted ? "default" : "secondary"} 
+                        className={`text-xs ${
+                          isHighlighted ? 'bg-primary text-primary-foreground' : ''
+                        }`}
+                      >
+                        {badge}
+                      </Badge>
+                    )}
+                    {isDisabled && <span className="text-xs text-muted-foreground">(Disabled)</span>}
+                  </div>
                 </Link>
               );
             })}
@@ -237,21 +276,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <div className="hidden lg:block">
-                <h1 className="text-lg font-semibold text-foreground">
-                  {navigation.find(item => isActive(item.href))?.name || 'Dashboard'}
-                </h1>
+              <div className="flex items-center space-x-3">
+                <div className="lg:hidden flex items-center space-x-2">
+                  <Shield className="h-6 w-6 text-primary" />
+                  <span className="font-bold text-lg">ComplianceIQ</span>
+                </div>
+                <div className="hidden lg:block">
+                  <h1 className="text-lg font-semibold text-foreground">
+                    {navigation.find(item => isActive(item.href))?.name || 'Dashboard'}
+                  </h1>
+                </div>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span>System Healthy</span>
-              </Badge>
-              <Button variant="outline" size="sm">
+              <div className="hidden sm:flex items-center space-x-2">
+                <Badge variant="outline" className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="hidden sm:inline">System Healthy</span>
+                </Badge>
+              </div>
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <Zap className="h-4 w-4 mr-2" />
-                Live Updates
+                <span className="hidden md:inline">Live Updates</span>
+              </Button>
+              <Button variant="outline" size="sm" className="sm:hidden">
+                <Zap className="h-4 w-4" />
               </Button>
             </div>
           </div>

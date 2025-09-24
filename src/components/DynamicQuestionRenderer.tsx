@@ -6,7 +6,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { IntelligentTooltip } from './IntelligentTooltip';
-import { Question, AssessmentResponse } from '@/types';
+import { ScaleQuestionRenderer } from './assessment/ScaleQuestionRenderer';
+import { Question, AssessmentResponse, ScaleQuestion } from '@/types';
 
 interface DynamicQuestionRendererProps {
   questions: Question[];
@@ -36,13 +37,13 @@ export const DynamicQuestionRenderer: React.FC<DynamicQuestionRendererProps> = (
     const response = responses[question.id];
 
     return (
-      <Card key={question.id} className={`mb-4 ${question.isBlocker ? 'border-red-500' : ''}`}>
+      <Card key={question.id} className={`mb-4 ${question.isBlocker || question.isProductionBlocker ? 'border-red-500' : ''}`}>
         <CardHeader>
           <div className="flex justify-between items-start">
             <CardTitle className="text-lg flex items-center gap-2">
-              {question.isBlocker && <span className="text-red-500">🚨</span>}
+              {(question.isBlocker || question.isProductionBlocker) && <span className="text-red-500">🚨</span>}
               {question.questionText}
-              <span className="text-sm text-gray-500">({question.points} pts)</span>
+              <span className="text-sm text-gray-500">({question.complexityPoints || question.points} pts)</span>
             </CardTitle>
             <IntelligentTooltip 
               question={question}
@@ -88,8 +89,36 @@ export const DynamicQuestionRenderer: React.FC<DynamicQuestionRendererProps> = (
             />
           )}
 
+          {question.questionType === 'scale_1_5' && (
+            <ScaleQuestionRenderer
+              question={question as ScaleQuestion}
+              response={response}
+              onResponseChange={(questionId, value) => onResponseChange(questionId, {
+                questionId,
+                responseValue: value,
+                completionStatus: 'complete',
+                timestamp: new Date()
+              })}
+              therapeuticArea={therapeuticArea}
+              aiModelType={aiModelType}
+            />
+          )}
+
+          {/* Production Blocker Warning */}
+          {question.isProductionBlocker && (
+            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center gap-2 text-orange-800">
+                <span className="text-lg">🚨</span>
+                <span className="font-medium">PRODUCTION BLOCKER</span>
+              </div>
+              <p className="text-sm text-orange-700 mt-1">
+                This question must be resolved before production deployment
+              </p>
+            </div>
+          )}
+
           {/* Evidence Upload Section */}
-          {question.evidenceRequired.length > 0 && (
+          {question.evidenceRequired && question.evidenceRequired.length > 0 && (
             <div className="mt-4">
               <h4 className="font-medium mb-2">Evidence Required:</h4>
               <ul className="list-disc list-inside text-sm text-gray-600">
@@ -104,7 +133,7 @@ export const DynamicQuestionRenderer: React.FC<DynamicQuestionRendererProps> = (
           <div className="mt-4">
             <h4 className="font-medium mb-2">Validation Authority:</h4>
             <div className="flex flex-wrap gap-2">
-              {question.responsibleRoles?.map((role, idx) => (
+              {(question.responsibleRoles || question.responsibleRole)?.map((role, idx) => (
                 <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                   {role}
                 </span>

@@ -1,14 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 const prisma = new PrismaClient();
+
+// Define proper types for assessment data
+interface AssessmentData {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  assessmentName: string;
+  status: string;
+  currentScore: number;
+  maxPossibleScore: number;
+  tenant: {
+    id: string;
+    name: string;
+    industryType: string | null;
+    description: string | null;
+    website: string | null;
+    subscriptionTier: string | null;
+    isActive: boolean;
+    createdAt: Date;
+    therapeuticFocus: string[];
+    aiInitiatives: string[];
+    deploymentScenarios: string[];
+  };
+  completionTime?: number;
+  isProductionReady?: boolean;
+  overallScore?: number;
+  sectionScores?: Record<string, number>;
+  therapeuticAreas?: Array<{ id: string; name: string }>;
+  aiModelTypes?: Array<{ id: string; name: string }>;
+  deploymentScenarios?: Array<{ id: string; name: string }>;
+  responses?: any[];
+  personaId?: string;
+  [key: string]: unknown;
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const companyId = searchParams.get('companyId');
-    const personaId = searchParams.get('personaId');
-    const assessmentId = searchParams.get('assessmentId');
+    // const personaId = searchParams.get('personaId');
+    // const assessmentId = searchParams.get('assessmentId');
     const dateRange = searchParams.get('dateRange') || '30d';
 
     // Calculate date range
@@ -31,7 +69,7 @@ export async function GET(request: NextRequest) {
         startDate.setDate(endDate.getDate() - 30);
     }
 
-    let whereClause: any = {
+    const whereClause: Record<string, unknown> = {
       createdAt: {
         gte: startDate,
         lte: endDate,
@@ -69,17 +107,17 @@ export async function GET(request: NextRequest) {
     const analytics = {
       overview: {
         totalAssessments: assessments.length,
-        completedAssessments: assessments.filter(a => a.status === 'completed').length,
-        inProgressAssessments: assessments.filter(a => a.status === 'in_progress').length,
+        completedAssessments: assessments.filter((a: AssessmentData) => a.status === 'completed').length,
+        inProgressAssessments: assessments.filter((a: AssessmentData) => a.status === 'in_progress').length,
         averageScore: assessments.length > 0 ? 
-          Math.round(assessments.reduce((sum, a) => sum + a.currentScore, 0) / assessments.length) : 0,
+          Math.round(assessments.reduce((sum: number, a: AssessmentData) => sum + a.currentScore, 0) / assessments.length) : 0,
         averageCompletionTime: calculateAverageCompletionTime(assessments),
         productionReadyRate: calculateProductionReadyRate(assessments),
       },
       scoring: {
         scoreDistribution: calculateScoreDistribution(assessments),
         scoreTrends: calculateScoreTrends(assessments),
-        criticalGaps: identifyCriticalGaps(assessments),
+        criticalGaps: await identifyCriticalGaps(assessments),
         improvementAreas: identifyImprovementAreas(assessments),
       },
       sections: {
@@ -137,7 +175,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper functions for analytics calculations
-function calculateAverageCompletionTime(assessments: any[]): number {
+function calculateAverageCompletionTime(assessments: AssessmentData[]): number {
   const completedAssessments = assessments.filter(a => a.status === 'completed');
   if (completedAssessments.length === 0) return 0;
   
@@ -150,11 +188,11 @@ function calculateAverageCompletionTime(assessments: any[]): number {
   return Math.round(totalTime / completedAssessments.length / (1000 * 60 * 60)); // Hours
 }
 
-function calculateProductionReadyRate(assessments: any[]): number {
-  const completedAssessments = assessments.filter(a => a.status === 'completed');
+function calculateProductionReadyRate(assessments: AssessmentData[]): number {
+  const completedAssessments = assessments.filter((a: AssessmentData) => a.status === 'completed');
   if (completedAssessments.length === 0) return 0;
   
-  const productionReady = completedAssessments.filter(a => {
+  const productionReady = completedAssessments.filter((a: AssessmentData) => {
     const completionRate = (a.currentScore / a.maxPossibleScore) * 100;
     return completionRate >= 85; // 85% threshold for production ready
   });
@@ -162,7 +200,7 @@ function calculateProductionReadyRate(assessments: any[]): number {
   return Math.round((productionReady.length / completedAssessments.length) * 100);
 }
 
-function calculateScoreDistribution(assessments: any[]): any[] {
+function calculateScoreDistribution(assessments: AssessmentData[]): Record<string, unknown>[] {
   const ranges = [
     { range: '0-20%', min: 0, max: 20, count: 0 },
     { range: '21-40%', min: 21, max: 40, count: 0 },
@@ -171,8 +209,8 @@ function calculateScoreDistribution(assessments: any[]): any[] {
     { range: '81-100%', min: 81, max: 100, count: 0 },
   ];
   
-  assessments.forEach(assessment => {
-    const percentage = (assessment.currentScore / assessment.maxPossibleScore) * 100;
+  assessments.forEach((assessment: AssessmentData) => {
+    const percentage = ((assessment as AssessmentData).currentScore / (assessment as AssessmentData).maxPossibleScore) * 100;
     const range = ranges.find(r => percentage >= r.min && percentage <= r.max);
     if (range) range.count++;
   });
@@ -180,17 +218,17 @@ function calculateScoreDistribution(assessments: any[]): any[] {
   return ranges;
 }
 
-function calculateScoreTrends(assessments: any[]): any[] {
+function calculateScoreTrends(assessments: AssessmentData[]): Record<string, unknown>[] {
   const monthlyData = new Map();
   
-  assessments.forEach(assessment => {
+  assessments.forEach((assessment: AssessmentData) => {
     const month = new Date(assessment.createdAt).toISOString().substring(0, 7);
     if (!monthlyData.has(month)) {
       monthlyData.set(month, { count: 0, totalScore: 0 });
     }
     const data = monthlyData.get(month);
     data.count++;
-    data.totalScore += (assessment.currentScore / assessment.maxPossibleScore) * 100;
+    data.totalScore += ((assessment as AssessmentData).currentScore / (assessment as AssessmentData).maxPossibleScore) * 100;
   });
   
   return Array.from(monthlyData.entries()).map(([month, data]) => ({
@@ -200,18 +238,32 @@ function calculateScoreTrends(assessments: any[]): any[] {
   }));
 }
 
-function identifyCriticalGaps(assessments: any[]): any[] {
+async function identifyCriticalGaps(assessments: AssessmentData[]): Promise<Record<string, unknown>[]> {
   // Analyze assessments to identify common gaps based on real seeded data
   const gapAnalysis = new Map();
   
-  // Define critical sections based on the seeded Gilead assessments
-  const criticalSections = [
-    { id: 'data-observability', title: 'Data Observability & Monitoring', isCritical: true },
-    { id: 'fda-ai-governance', title: 'FDA AI Governance 2025 Compliance', isCritical: true },
-    { id: 'model-validation', title: 'AI Model Validation & Testing', isCritical: true },
-    { id: 'data-quality', title: 'Data Quality Assurance & Validation', isCritical: false },
-    { id: 'risk-management', title: 'AI Risk Management & Mitigation', isCritical: true }
-  ];
+  // Get critical sections from database
+  const criticalSections = await prisma.assessmentSection.findMany({
+    select: {
+      id: true,
+      title: true,
+      isCriticalBlocker: true,
+      learningComponentsJson: true
+    },
+    where: {
+      OR: [
+        { isCriticalBlocker: true },
+        { learningComponentsJson: { path: ['isCritical'], equals: true } }
+      ]
+    }
+  }).then(sections => sections.map(section => ({
+    id: section.id,
+    title: section.title,
+    isCritical: section.isCriticalBlocker || 
+      (section.learningComponentsJson && 
+       typeof section.learningComponentsJson === 'object' && 
+        (section.learningComponentsJson as any)?.isCritical)
+  })));
 
   // Analyze failed assessments to identify gaps
   const failedAssessments = assessments.filter(a => a.status === 'failed');
@@ -219,26 +271,26 @@ function identifyCriticalGaps(assessments: any[]): any[] {
 
   criticalSections.forEach(section => {
     let gapCount = 0;
-    let severity = 'medium';
+    // const severity = 'medium';
 
     // Count gaps based on assessment status and content
     failedAssessments.forEach(assessment => {
-      if (assessment.assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
-          assessment.assessmentName.toLowerCase().includes('data observability') ||
-          assessment.assessmentName.toLowerCase().includes('fda') ||
-          assessment.assessmentName.toLowerCase().includes('governance') ||
-          assessment.assessmentName.toLowerCase().includes('validation')) {
+      if ((assessment as AssessmentData).assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('data observability') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('fda') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('governance') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('validation')) {
         gapCount++;
       }
     });
 
     // Add in-progress assessments as potential gaps
     inProgressAssessments.forEach(assessment => {
-      if (assessment.assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
-          assessment.assessmentName.toLowerCase().includes('data observability') ||
-          assessment.assessmentName.toLowerCase().includes('fda') ||
-          assessment.assessmentName.toLowerCase().includes('governance') ||
-          assessment.assessmentName.toLowerCase().includes('validation')) {
+      if ((assessment as AssessmentData).assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('data observability') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('fda') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('governance') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('validation')) {
         gapCount += 0.5; // Partial gap
       }
     });
@@ -258,7 +310,7 @@ function identifyCriticalGaps(assessments: any[]): any[] {
     .slice(0, 10);
 }
 
-function identifyImprovementAreas(assessments: any[]): any[] {
+function identifyImprovementAreas(assessments: AssessmentData[]): Record<string, unknown>[] {
   // Identify sections with lowest average scores based on real seeded data
   const sectionScores = new Map();
   
@@ -280,17 +332,17 @@ function identifyImprovementAreas(assessments: any[]): any[] {
 
     // Calculate scores based on assessment content and status
     assessments.forEach(assessment => {
-      if (assessment.assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
-          assessment.assessmentName.toLowerCase().includes('data observability') ||
-          assessment.assessmentName.toLowerCase().includes('fda') ||
-          assessment.assessmentName.toLowerCase().includes('governance') ||
-          assessment.assessmentName.toLowerCase().includes('validation') ||
-          assessment.assessmentName.toLowerCase().includes('bias') ||
-          assessment.assessmentName.toLowerCase().includes('monitoring') ||
-          assessment.assessmentName.toLowerCase().includes('compliance')) {
+      if ((assessment as AssessmentData).assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('data observability') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('fda') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('governance') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('validation') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('bias') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('monitoring') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('compliance')) {
         
         // Use current score from assessment, with some variation based on status
-        let score = assessment.currentScore;
+        let score = (assessment as AssessmentData).currentScore;
         if (assessment.status === 'failed') {
           score = Math.max(0, score - 20); // Failed assessments have lower effective scores
         } else if (assessment.status === 'in_progress') {
@@ -323,7 +375,7 @@ function identifyImprovementAreas(assessments: any[]): any[] {
     .slice(0, 10);
 }
 
-function calculateSectionPerformance(assessments: any[]): any[] {
+function calculateSectionPerformance(assessments: AssessmentData[]): Record<string, unknown>[] {
   // Calculate section performance based on real seeded assessment data
   const sectionPerformance = new Map();
   
@@ -377,17 +429,17 @@ function calculateSectionPerformance(assessments: any[]): any[] {
     
     // Use actual assessment data where available, otherwise generate realistic data
     assessments.forEach(assessment => {
-      if (assessment.assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
-          assessment.assessmentName.toLowerCase().includes('data observability') ||
-          assessment.assessmentName.toLowerCase().includes('fda') ||
-          assessment.assessmentName.toLowerCase().includes('governance') ||
-          assessment.assessmentName.toLowerCase().includes('validation') ||
-          assessment.assessmentName.toLowerCase().includes('bias') ||
-          assessment.assessmentName.toLowerCase().includes('monitoring') ||
-          assessment.assessmentName.toLowerCase().includes('compliance')) {
+      if ((assessment as AssessmentData).assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('data observability') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('fda') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('governance') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('validation') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('bias') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('monitoring') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('compliance')) {
         
         totalAssessments++;
-        totalScore += assessment.currentScore;
+        totalScore += (assessment as AssessmentData).currentScore;
         
         if (assessment.status === 'completed') {
           completedAssessments++;
@@ -429,7 +481,7 @@ function calculateSectionPerformance(assessments: any[]): any[] {
 }
 
 // Helper function to generate realistic scores based on Gilead's capabilities
-function generateRealisticScore(sectionId: string, category: string): number {
+function generateRealisticScore(sectionId: string, _category: string): number {
   const scoreMap: { [key: string]: number } = {
     // Data Management - Gilead is strong here
     'data-observability': 45, // Known gap area
@@ -472,7 +524,7 @@ function generateRealisticScore(sectionId: string, category: string): number {
 }
 
 // Helper function to generate realistic completion rates
-function generateRealisticCompletionRate(sectionId: string, category: string): number {
+function generateRealisticCompletionRate(sectionId: string, _category: string): number {
   const completionMap: { [key: string]: number } = {
     // Data Management
     'data-observability': 30, // Low completion due to gaps
@@ -531,7 +583,7 @@ function categorizePerformance(score: number, completionRate: number): string {
   }
 }
 
-function identifyCriticalSections(assessments: any[]): any[] {
+function identifyCriticalSections(assessments: AssessmentData[]): Record<string, unknown>[] {
   // Identify critical sections based on real seeded assessment data
   const criticalSections = new Map();
   
@@ -552,17 +604,17 @@ function identifyCriticalSections(assessments: any[]): any[] {
 
     // Analyze assessments for this critical section
     assessments.forEach(assessment => {
-      if (assessment.assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
-          assessment.assessmentName.toLowerCase().includes('data observability') ||
-          assessment.assessmentName.toLowerCase().includes('fda') ||
-          assessment.assessmentName.toLowerCase().includes('governance') ||
-          assessment.assessmentName.toLowerCase().includes('validation') ||
-          assessment.assessmentName.toLowerCase().includes('bias') ||
-          assessment.assessmentName.toLowerCase().includes('monitoring') ||
-          assessment.assessmentName.toLowerCase().includes('risk')) {
+      if ((assessment as AssessmentData).assessmentName.toLowerCase().includes(section.id.split('-')[0]) ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('data observability') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('fda') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('governance') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('validation') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('bias') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('monitoring') ||
+          (assessment as AssessmentData).assessmentName.toLowerCase().includes('risk')) {
         
         totalAssessments++;
-        totalScore += assessment.currentScore;
+        totalScore += (assessment as AssessmentData).currentScore;
         
         if (assessment.status === 'completed') {
           completedAssessments++;
@@ -588,7 +640,7 @@ function identifyCriticalSections(assessments: any[]): any[] {
   }));
 }
 
-function calculateCollaborationMetrics(assessments: any[]): any {
+function calculateCollaborationMetrics(_assessments: AssessmentData[]): Record<string, unknown> {
   // This would integrate with collaboration data
   return {
     averageCollaborationTime: 2.5, // hours
@@ -598,16 +650,18 @@ function calculateCollaborationMetrics(assessments: any[]): any {
   };
 }
 
-function calculateCompanyComparison(assessments: any[]): any[] {
+function calculateCompanyComparison(assessments: AssessmentData[]): Record<string, unknown>[] {
   const companyData = new Map();
   
   assessments.forEach(assessment => {
-    const companyId = assessment.tenantId;
+    const companyId = (assessment as AssessmentData).tenantId;
     if (!companyData.has(companyId)) {
       companyData.set(companyId, {
         companyId,
-        companyName: assessment.tenant.name,
-        industryType: assessment.tenant.industryType,
+        companyName: typeof (assessment as AssessmentData).tenant === 'string' 
+          ? (assessment as AssessmentData).tenant 
+          : (assessment as any).tenant?.name || 'Unknown Company',
+        industryType: 'Pharmaceutical',
         totalAssessments: 0,
         totalScore: 0,
         completedAssessments: 0,
@@ -615,7 +669,7 @@ function calculateCompanyComparison(assessments: any[]): any[] {
     }
     const company = companyData.get(companyId);
     company.totalAssessments++;
-    company.totalScore += (assessment.currentScore / assessment.maxPossibleScore) * 100;
+    company.totalScore += ((assessment as AssessmentData).currentScore / (assessment as AssessmentData).maxPossibleScore) * 100;
     if (assessment.status === 'completed') {
       company.completedAssessments++;
     }
@@ -628,11 +682,11 @@ function calculateCompanyComparison(assessments: any[]): any[] {
   }));
 }
 
-function calculateIndustryBenchmarks(assessments: any[]): any {
+function calculateIndustryBenchmarks(assessments: AssessmentData[]): Record<string, unknown>[] {
   const industryData = new Map();
   
   assessments.forEach(assessment => {
-    const industry = assessment.tenant.industryType;
+    const industry = 'Pharmaceutical';
     if (!industryData.has(industry)) {
       industryData.set(industry, {
         industry,
@@ -643,8 +697,8 @@ function calculateIndustryBenchmarks(assessments: any[]): any {
     }
     const data = industryData.get(industry);
     data.totalAssessments++;
-    data.totalScore += (assessment.currentScore / assessment.maxPossibleScore) * 100;
-    data.companies.add(assessment.tenantId);
+    data.totalScore += ((assessment as AssessmentData).currentScore / (assessment as AssessmentData).maxPossibleScore) * 100;
+    data.companies.add((assessment as AssessmentData).tenantId);
   });
   
   return Array.from(industryData.entries()).map(([industry, data]) => ({
@@ -655,14 +709,14 @@ function calculateIndustryBenchmarks(assessments: any[]): any {
   }));
 }
 
-function identifyTopPerformers(assessments: any[]): any[] {
+function identifyTopPerformers(assessments: AssessmentData[]): Record<string, unknown>[] {
   const companyData = calculateCompanyComparison(assessments);
   return companyData
-    .sort((a, b) => b.averageScore - a.averageScore)
+    .sort((a, b) => (b as any).averageScore - (a as any).averageScore)
     .slice(0, 5);
 }
 
-function calculatePersonaPerformance(assessments: any[]): any[] {
+function calculatePersonaPerformance(_assessments: AssessmentData[]): Record<string, unknown>[] {
   // This would integrate with persona data
   return [
     { persona: 'Data Science', averageScore: 85, completionRate: 92, efficiency: 88 },
@@ -673,7 +727,7 @@ function calculatePersonaPerformance(assessments: any[]): any[] {
   ];
 }
 
-function identifyExpertiseGaps(assessments: any[]): any[] {
+function identifyExpertiseGaps(_assessments: AssessmentData[]): Record<string, unknown>[] {
   // Analyze persona-specific performance gaps
   return [
     { persona: 'Data Science', gap: 'Regulatory Compliance', severity: 'high' },
@@ -684,7 +738,7 @@ function identifyExpertiseGaps(assessments: any[]): any[] {
   ];
 }
 
-function calculateCollaborationEfficiency(assessments: any[]): any {
+function calculateCollaborationEfficiency(_assessments: AssessmentData[]): Record<string, unknown> {
   return {
     averageCollaborationTime: 2.3,
     crossPersonaSuccess: 78,
@@ -693,110 +747,860 @@ function calculateCollaborationEfficiency(assessments: any[]): any {
   };
 }
 
-function calculateMonthlyTrends(assessments: any[]): any[] {
+function calculateMonthlyTrends(assessments: AssessmentData[]): Record<string, unknown>[] {
   return calculateScoreTrends(assessments);
 }
 
-function calculateQuarterlyTrends(assessments: any[]): any[] {
+function calculateQuarterlyTrends(_assessments: AssessmentData[]): Record<string, unknown>[] {
   // Similar to monthly but grouped by quarters
   return [];
 }
 
-function calculateYearlyTrends(assessments: any[]): any[] {
+function calculateYearlyTrends(_assessments: AssessmentData[]): Record<string, unknown>[] {
   // Similar to monthly but grouped by years
   return [];
 }
 
-function generateKeyFindings(assessments: any[]): any[] {
+function generateKeyFindings(assessments: AssessmentData[]): Record<string, unknown>[] {
+  const findings: Record<string, unknown>[] = [];
+  
+  if (assessments.length === 0) {
   return [
     {
-      finding: 'Overall compliance score improved by 15% over the last quarter',
+        finding: 'No assessment data available for analysis',
+        impact: 'medium',
+        category: 'data',
+        confidence: 0
+      }
+    ];
+  }
+
+  // Calculate overall performance metrics
+  const totalAssessments = assessments.length;
+  const completedAssessments = assessments.filter(a => a.status === 'completed').length;
+  const averageScore = assessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / totalAssessments;
+  const completionRate = (completedAssessments / totalAssessments) * 100;
+
+  // Analyze persona performance
+  const personaStats = new Map<string, { count: number; avgScore: number; completionRate: number }>();
+  assessments.forEach(assessment => {
+    const personaId = assessment.personaId || 'unknown';
+    if (!personaStats.has(personaId)) {
+      personaStats.set(personaId, { count: 0, avgScore: 0, completionRate: 0 });
+    }
+    const stats = personaStats.get(personaId)!;
+    stats.count++;
+    stats.avgScore += assessment.currentScore || 0;
+    if (assessment.status === 'completed') {
+      stats.completionRate++;
+    }
+  });
+
+  // Calculate persona averages
+  personaStats.forEach((stats, personaId) => {
+    stats.avgScore = stats.avgScore / stats.count;
+    stats.completionRate = (stats.completionRate / stats.count) * 100;
+  });
+
+  // Find best performing persona
+  const bestPersona = Array.from(personaStats.entries())
+    .sort(([,a], [,b]) => b.avgScore - a.avgScore)[0];
+
+  // Analyze critical sections performance
+  const criticalSections = ['data-observability', 'fda-ai-governance', 'model-validation', 'risk-management'];
+  const criticalSectionPerformance = criticalSections.map(sectionId => {
+    const sectionAssessments = assessments.filter(a => 
+      a.assessmentName.toLowerCase().includes(sectionId.split('-')[0]) ||
+      a.assessmentName.toLowerCase().includes('critical')
+    );
+    const avgScore = sectionAssessments.length > 0 
+      ? sectionAssessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / sectionAssessments.length
+      : 0;
+    return { sectionId, avgScore, count: sectionAssessments.length };
+  });
+
+  const criticalSectionsAvgScore = criticalSectionPerformance.length > 0
+    ? criticalSectionPerformance.reduce((sum, s) => sum + s.avgScore, 0) / criticalSectionPerformance.length
+    : 0;
+
+  // Generate dynamic findings
+  if (averageScore >= 70) {
+    findings.push({
+      finding: `Strong overall compliance performance with ${averageScore.toFixed(1)}% average score`,
       impact: 'high',
       category: 'performance',
-    },
-    {
-      finding: 'Data Science persona shows highest completion rates (92%)',
+      confidence: 85,
+      details: `${completedAssessments}/${totalAssessments} assessments completed`
+    });
+  } else if (averageScore < 50) {
+    findings.push({
+      finding: `Critical compliance gaps identified with ${averageScore.toFixed(1)}% average score`,
+      impact: 'critical',
+      category: 'risk',
+      confidence: 90,
+      details: `Immediate action required for ${totalAssessments - completedAssessments} incomplete assessments`
+    });
+  } else {
+    findings.push({
+      finding: `Moderate compliance performance with ${averageScore.toFixed(1)}% average score`,
+      impact: 'medium',
+      category: 'performance',
+      confidence: 75,
+      details: `${completionRate.toFixed(1)}% completion rate across all assessments`
+    });
+  }
+
+  if (bestPersona && bestPersona[1].avgScore > averageScore + 10) {
+    findings.push({
+      finding: `${bestPersona[0]} persona demonstrates exceptional performance (${bestPersona[1].avgScore.toFixed(1)}% avg score)`,
       impact: 'medium',
       category: 'persona',
-    },
-    {
-      finding: 'Critical sections completion rate below industry average',
+      confidence: 80,
+      details: `${bestPersona[1].completionRate.toFixed(1)}% completion rate`
+    });
+  }
+
+  if (criticalSectionsAvgScore < 60) {
+    findings.push({
+      finding: `Critical sections underperforming with ${criticalSectionsAvgScore.toFixed(1)}% average score`,
       impact: 'high',
       category: 'risk',
-    },
-    {
-      finding: 'Cross-persona collaboration increased by 25%',
-      impact: 'medium',
-      category: 'collaboration',
-    },
-  ];
-}
+      confidence: 85,
+      details: `Focus needed on regulatory compliance and risk management`
+    });
+  }
 
-function generateRecommendations(assessments: any[]): any[] {
-  return [
-    {
-      recommendation: 'Focus on improving critical section completion rates',
-      priority: 'high',
-      category: 'compliance',
-      estimatedImpact: 'Reduce compliance risk by 30%',
-    },
-    {
-      recommendation: 'Implement additional training for Legal persona on technical aspects',
-      priority: 'medium',
-      category: 'training',
-      estimatedImpact: 'Improve cross-functional collaboration by 20%',
-    },
-    {
-      recommendation: 'Establish regular cross-persona review sessions',
-      priority: 'medium',
+  if (completionRate < 70) {
+    findings.push({
+      finding: `Assessment completion rate below target at ${completionRate.toFixed(1)}%`,
+      impact: 'high',
       category: 'process',
-      estimatedImpact: 'Increase collaboration efficiency by 15%',
-    },
-  ];
+      confidence: 80,
+      details: `${totalAssessments - completedAssessments} assessments pending completion`
+    });
+  }
+
+  // Analyze therapeutic area performance
+  const therapyStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.therapeuticAreas?.forEach((therapy: any) => {
+      if (!therapyStats.has(therapy.name)) {
+        therapyStats.set(therapy.name, { count: 0, avgScore: 0 });
+      }
+      const stats = therapyStats.get(therapy.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (therapyStats.size > 1) {
+    const bestTherapy = Array.from(therapyStats.entries())
+      .sort(([,a], [,b]) => (b.avgScore / b.count) - (a.avgScore / a.count))[0];
+    
+    findings.push({
+      finding: `${bestTherapy[0]} therapeutic area shows strongest compliance readiness`,
+      impact: 'medium',
+      category: 'therapy',
+      confidence: 70,
+      details: `${(bestTherapy[1].avgScore / bestTherapy[1].count).toFixed(1)}% average score`
+    });
+  }
+
+  return findings.slice(0, 6); // Return top 6 findings
 }
 
-function identifyRiskFactors(assessments: any[]): any[] {
+function generateRecommendations(assessments: AssessmentData[]): Record<string, unknown>[] {
+  const recommendations: Record<string, unknown>[] = [];
+  
+  if (assessments.length === 0) {
   return [
     {
-      risk: 'Low completion rate in critical sections',
-      severity: 'high',
+        recommendation: 'Complete initial assessments to enable personalized recommendations',
+      priority: 'high',
+        category: 'data',
+        estimatedImpact: 'Enable data-driven insights and recommendations',
+        confidence: 90
+      }
+    ];
+  }
+
+  // Calculate performance metrics
+  const totalAssessments = assessments.length;
+  const completedAssessments = assessments.filter(a => a.status === 'completed').length;
+  const averageScore = assessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / totalAssessments;
+  const completionRate = (completedAssessments / totalAssessments) * 100;
+
+  // Analyze persona performance gaps
+  const personaStats = new Map<string, { count: number; avgScore: number; completionRate: number }>();
+  assessments.forEach(assessment => {
+    const personaId = assessment.personaId || 'unknown';
+    if (!personaStats.has(personaId)) {
+      personaStats.set(personaId, { count: 0, avgScore: 0, completionRate: 0 });
+    }
+    const stats = personaStats.get(personaId)!;
+    stats.count++;
+    stats.avgScore += assessment.currentScore || 0;
+    if (assessment.status === 'completed') {
+      stats.completionRate++;
+    }
+  });
+
+  // Calculate persona averages and identify gaps
+  const personaGaps: Array<{persona: string, avgScore: number, gap: number}> = [];
+  personaStats.forEach((stats, personaId) => {
+    stats.avgScore = stats.avgScore / stats.count;
+    stats.completionRate = (stats.completionRate / stats.count) * 100;
+    const gap = averageScore - stats.avgScore;
+    if (gap > 10) { // Significant gap
+      personaGaps.push({ persona: personaId, avgScore: stats.avgScore, gap });
+    }
+  });
+
+  // Analyze critical sections
+  const criticalSections = ['data-observability', 'fda-ai-governance', 'model-validation', 'risk-management'];
+  const criticalSectionGaps: Array<{section: string, avgScore: number, gap: number}> = [];
+  
+  criticalSections.forEach(sectionId => {
+    const sectionAssessments = assessments.filter(a => 
+      a.assessmentName.toLowerCase().includes(sectionId.split('-')[0]) ||
+      a.assessmentName.toLowerCase().includes('critical')
+    );
+    const avgScore = sectionAssessments.length > 0 
+      ? sectionAssessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / sectionAssessments.length
+      : 0;
+    const gap = 70 - avgScore; // Target 70% for critical sections
+    if (gap > 15) {
+      criticalSectionGaps.push({ section: sectionId, avgScore, gap });
+    }
+  });
+
+  // Generate targeted recommendations
+
+  // Critical section recommendations
+  if (criticalSectionGaps.length > 0) {
+    const worstSection = criticalSectionGaps.sort((a, b) => b.gap - a.gap)[0];
+    recommendations.push({
+      recommendation: `Prioritize ${worstSection.section.replace('-', ' ')} improvements - current ${worstSection.avgScore.toFixed(1)}% vs 70% target`,
+      priority: 'critical',
+      category: 'compliance',
+      estimatedImpact: `Reduce regulatory risk by ${Math.min(40, worstSection.gap * 0.8).toFixed(0)}%`,
+      confidence: 90,
+      timeframe: '30-60 days',
+      details: `Focus on critical blocker sections to meet regulatory requirements`
+    });
+  }
+
+  // Persona-specific training recommendations
+  if (personaGaps.length > 0) {
+    const worstPersona = personaGaps.sort((a, b) => b.gap - a.gap)[0];
+    recommendations.push({
+      recommendation: `Implement targeted training program for ${worstPersona.persona} persona`,
+      priority: 'high',
+      category: 'training',
+      estimatedImpact: `Improve ${worstPersona.persona} scores by ${Math.min(25, worstPersona.gap * 0.6).toFixed(0)}%`,
+      confidence: 75,
+      timeframe: '60-90 days',
+      details: `${worstPersona.persona} currently at ${worstPersona.avgScore.toFixed(1)}% vs ${averageScore.toFixed(1)}% average`
+    });
+  }
+
+  // Completion rate recommendations
+  if (completionRate < 80) {
+    const incompleteCount = totalAssessments - completedAssessments;
+    recommendations.push({
+      recommendation: `Address ${incompleteCount} incomplete assessments to improve overall compliance posture`,
+      priority: 'high',
+      category: 'process',
+      estimatedImpact: `Increase completion rate from ${completionRate.toFixed(1)}% to 85%`,
+      confidence: 85,
+      timeframe: '30 days',
+      details: `Focus on completing critical assessments first`
+    });
+  }
+
+  // Performance improvement recommendations
+  if (averageScore < 70) {
+    const improvementNeeded = 70 - averageScore;
+    recommendations.push({
+      recommendation: `Implement comprehensive compliance improvement program`,
+      priority: 'high',
+      category: 'performance',
+      estimatedImpact: `Improve overall scores by ${improvementNeeded.toFixed(0)} percentage points`,
+      confidence: 80,
+      timeframe: '90 days',
+      details: `Current average: ${averageScore.toFixed(1)}%, Target: 70%`
+    });
+  }
+
+  // Cross-functional collaboration recommendations
+  if (personaStats.size > 2) {
+    const personaScores = Array.from(personaStats.values()).map(s => s.avgScore);
+    const scoreVariance = Math.max(...personaScores) - Math.min(...personaScores);
+    
+    if (scoreVariance > 20) {
+      recommendations.push({
+        recommendation: 'Establish cross-functional compliance review sessions',
+        priority: 'medium',
+        category: 'collaboration',
+        estimatedImpact: 'Reduce score variance by 30% and improve knowledge sharing',
+        confidence: 70,
+        timeframe: '60 days',
+        details: `Current variance: ${scoreVariance.toFixed(1)} percentage points between personas`
+      });
+    }
+  }
+
+  // Therapeutic area specific recommendations
+  const therapyStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.therapeuticAreas?.forEach((therapy: any) => {
+      if (!therapyStats.has(therapy.name)) {
+        therapyStats.set(therapy.name, { count: 0, avgScore: 0 });
+      }
+      const stats = therapyStats.get(therapy.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (therapyStats.size > 1) {
+    const therapyGaps = Array.from(therapyStats.entries())
+      .map(([name, stats]) => ({
+        therapy: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .filter(t => t.avgScore < averageScore - 10);
+
+    if (therapyGaps.length > 0) {
+      const worstTherapy = therapyGaps.sort((a, b) => a.avgScore - b.avgScore)[0];
+      recommendations.push({
+        recommendation: `Develop specialized compliance framework for ${worstTherapy.therapy} therapeutic area`,
+        priority: 'medium',
+        category: 'therapy',
+        estimatedImpact: `Improve ${worstTherapy.therapy} compliance scores by 20%`,
+        confidence: 65,
+        timeframe: '90-120 days',
+        details: `${worstTherapy.therapy} at ${worstTherapy.avgScore.toFixed(1)}% vs ${averageScore.toFixed(1)}% average`
+      });
+    }
+  }
+
+  // AI Model type recommendations
+  const aiModelStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.aiModelTypes?.forEach((model: any) => {
+      if (!aiModelStats.has(model.name)) {
+        aiModelStats.set(model.name, { count: 0, avgScore: 0 });
+      }
+      const stats = aiModelStats.get(model.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (aiModelStats.size > 1) {
+    const modelGaps = Array.from(aiModelStats.entries())
+      .map(([name, stats]) => ({
+        model: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .filter(m => m.avgScore < averageScore - 15);
+
+    if (modelGaps.length > 0) {
+      recommendations.push({
+        recommendation: `Enhance compliance protocols for ${modelGaps[0].model} AI models`,
+        priority: 'medium',
+        category: 'ai-model',
+        estimatedImpact: `Improve ${modelGaps[0].model} model compliance by 25%`,
+        confidence: 70,
+        timeframe: '60-90 days',
+        details: `${modelGaps[0].model} models showing compliance gaps`
+      });
+    }
+  }
+
+  return recommendations.slice(0, 8); // Return top 8 recommendations
+}
+
+function identifyRiskFactors(assessments: AssessmentData[]): Record<string, unknown>[] {
+  const riskFactors: Record<string, unknown>[] = [];
+  
+  if (assessments.length === 0) {
+  return [
+    {
+        risk: 'No assessment data available for risk analysis',
+      severity: 'medium',
+        probability: 1.0,
+        impact: 'Unable to identify compliance risks',
+        confidence: 0
+      }
+    ];
+  }
+
+  // Calculate performance metrics
+  const totalAssessments = assessments.length;
+  const completedAssessments = assessments.filter(a => a.status === 'completed').length;
+  const averageScore = assessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / totalAssessments;
+  const completionRate = (completedAssessments / totalAssessments) * 100;
+
+  // Critical completion rate risk
+  if (completionRate < 70) {
+    const incompleteCount = totalAssessments - completedAssessments;
+    riskFactors.push({
+      risk: `High number of incomplete assessments (${incompleteCount}/${totalAssessments})`,
+      severity: completionRate < 50 ? 'critical' : 'high',
+      probability: 0.9,
+      impact: 'Regulatory non-compliance and audit failures',
+      confidence: 95,
+      details: `${completionRate.toFixed(1)}% completion rate below 70% target`,
+      mitigation: 'Prioritize completing critical assessments within 30 days'
+    });
+  }
+
+  // Low overall performance risk
+  if (averageScore < 60) {
+    riskFactors.push({
+      risk: `Critical compliance performance gap (${averageScore.toFixed(1)}% average score)`,
+      severity: averageScore < 40 ? 'critical' : 'high',
       probability: 0.8,
-      impact: 'Regulatory non-compliance',
-    },
-    {
-      risk: 'Knowledge gaps in cross-functional areas',
-      severity: 'medium',
-      probability: 0.6,
-      impact: 'Implementation delays',
-    },
-    {
-      risk: 'Insufficient collaboration between personas',
-      severity: 'medium',
-      probability: 0.5,
-      impact: 'Quality issues',
-    },
-  ];
+      impact: 'Regulatory violations, fines, and operational shutdowns',
+      confidence: 90,
+      details: `Overall score ${averageScore.toFixed(1)}% significantly below 70% benchmark`,
+      mitigation: 'Implement immediate compliance improvement program'
+    });
+  }
+
+  // Analyze critical sections risks
+  const criticalSections = ['data-observability', 'fda-ai-governance', 'model-validation', 'risk-management'];
+  const criticalSectionRisks: Array<{section: string, avgScore: number, riskLevel: string}> = [];
+  
+  criticalSections.forEach(sectionId => {
+    const sectionAssessments = assessments.filter(a => 
+      a.assessmentName.toLowerCase().includes(sectionId.split('-')[0]) ||
+      a.assessmentName.toLowerCase().includes('critical')
+    );
+    const avgScore = sectionAssessments.length > 0 
+      ? sectionAssessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / sectionAssessments.length
+      : 0;
+    
+    if (avgScore < 50) {
+      criticalSectionRisks.push({
+        section: sectionId,
+        avgScore,
+        riskLevel: avgScore < 30 ? 'critical' : 'high'
+      });
+    }
+  });
+
+  if (criticalSectionRisks.length > 0) {
+    const worstSection = criticalSectionRisks.sort((a, b) => a.avgScore - b.avgScore)[0];
+    riskFactors.push({
+      risk: `Critical section failure: ${worstSection.section.replace('-', ' ')} (${worstSection.avgScore.toFixed(1)}% score)`,
+      severity: worstSection.riskLevel,
+      probability: 0.85,
+      impact: 'Regulatory non-compliance and potential business impact',
+      confidence: 85,
+      details: `${worstSection.section} is a critical blocker section with severe performance gap`,
+      mitigation: 'Immediate focus on critical section remediation'
+    });
+  }
+
+  // Persona performance variance risk
+  const personaStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    const personaId = assessment.personaId || 'unknown';
+    if (!personaStats.has(personaId)) {
+      personaStats.set(personaId, { count: 0, avgScore: 0 });
+    }
+    const stats = personaStats.get(personaId)!;
+    stats.count++;
+    stats.avgScore += assessment.currentScore || 0;
+  });
+
+  if (personaStats.size > 2) {
+    const personaScores = Array.from(personaStats.values()).map(s => s.avgScore / s.count);
+    const scoreVariance = Math.max(...personaScores) - Math.min(...personaScores);
+    
+    if (scoreVariance > 30) {
+      const worstPersona = Array.from(personaStats.entries())
+        .sort(([,a], [,b]) => (a.avgScore / a.count) - (b.avgScore / b.count))[0];
+      
+      riskFactors.push({
+        risk: `Significant persona performance gap (${scoreVariance.toFixed(1)}% variance)`,
+        severity: 'high',
+        probability: 0.7,
+        impact: 'Cross-functional collaboration failures and knowledge gaps',
+        confidence: 80,
+        details: `${worstPersona[0]} persona significantly underperforming at ${(worstPersona[1].avgScore / worstPersona[1].count).toFixed(1)}%`,
+        mitigation: 'Implement targeted training and knowledge sharing programs'
+      });
+    }
+  }
+
+  // Therapeutic area compliance risks
+  const therapyStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.therapeuticAreas?.forEach((therapy: any) => {
+      if (!therapyStats.has(therapy.name)) {
+        therapyStats.set(therapy.name, { count: 0, avgScore: 0 });
+      }
+      const stats = therapyStats.get(therapy.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (therapyStats.size > 1) {
+    const therapyGaps = Array.from(therapyStats.entries())
+      .map(([name, stats]) => ({
+        therapy: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .filter(t => t.avgScore < averageScore - 20);
+
+    if (therapyGaps.length > 0) {
+      const worstTherapy = therapyGaps.sort((a, b) => a.avgScore - b.avgScore)[0];
+      riskFactors.push({
+        risk: `Therapeutic area compliance gap: ${worstTherapy.therapy} (${worstTherapy.avgScore.toFixed(1)}% score)`,
+        severity: 'high',
+        probability: 0.6,
+        impact: 'Therapy-specific regulatory violations and patient safety concerns',
+        confidence: 75,
+        details: `${worstTherapy.therapy} significantly below average compliance performance`,
+        mitigation: 'Develop therapy-specific compliance framework and training'
+      });
+    }
+  }
+
+  // AI Model type risks
+  const aiModelStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.aiModelTypes?.forEach((model: any) => {
+      if (!aiModelStats.has(model.name)) {
+        aiModelStats.set(model.name, { count: 0, avgScore: 0 });
+      }
+      const stats = aiModelStats.get(model.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (aiModelStats.size > 1) {
+    const modelGaps = Array.from(aiModelStats.entries())
+      .map(([name, stats]) => ({
+        model: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .filter(m => m.avgScore < averageScore - 25);
+
+    if (modelGaps.length > 0) {
+      riskFactors.push({
+        risk: `AI Model compliance failure: ${modelGaps[0].model} (${modelGaps[0].avgScore.toFixed(1)}% score)`,
+        severity: 'high',
+        probability: 0.7,
+        impact: 'AI model deployment failures and regulatory non-compliance',
+        confidence: 80,
+        details: `${modelGaps[0].model} models showing severe compliance gaps`,
+        mitigation: 'Enhance AI model-specific compliance protocols'
+      });
+    }
+  }
+
+  // Data quality and observability risks
+  const dataObservabilityAssessments = assessments.filter(a => 
+    a.assessmentName.toLowerCase().includes('data') ||
+    a.assessmentName.toLowerCase().includes('observability') ||
+    a.assessmentName.toLowerCase().includes('monitoring')
+  );
+  
+  if (dataObservabilityAssessments.length > 0) {
+    const dataAvgScore = dataObservabilityAssessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / dataObservabilityAssessments.length;
+    
+    if (dataAvgScore < 50) {
+      riskFactors.push({
+        risk: `Data observability and quality gaps (${dataAvgScore.toFixed(1)}% score)`,
+        severity: 'critical',
+        probability: 0.9,
+        impact: 'AI model failures, bias propagation, and regulatory violations',
+        confidence: 90,
+        details: 'Poor data quality directly impacts AI model performance and compliance',
+        mitigation: 'Implement comprehensive data quality and observability framework'
+      });
+    }
+  }
+
+  // Regulatory compliance timeline risks
+  const fdaAssessments = assessments.filter(a => 
+    a.assessmentName.toLowerCase().includes('fda') ||
+    a.assessmentName.toLowerCase().includes('regulatory') ||
+    a.assessmentName.toLowerCase().includes('governance')
+  );
+  
+  if (fdaAssessments.length > 0) {
+    const fdaAvgScore = fdaAssessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / fdaAssessments.length;
+    
+    if (fdaAvgScore < 60) {
+      riskFactors.push({
+        risk: `FDA AI Governance 2025 compliance gap (${fdaAvgScore.toFixed(1)}% score)`,
+        severity: 'critical',
+        probability: 0.8,
+        impact: 'FDA enforcement actions, product recalls, and business disruption',
+        confidence: 85,
+        details: 'FDA AI Governance 2025 requirements not being met',
+        mitigation: 'Accelerate FDA compliance program implementation'
+      });
+    }
+  }
+
+  return riskFactors.slice(0, 8); // Return top 8 risk factors
 }
 
-function identifyOpportunities(assessments: any[]): any[] {
+function identifyOpportunities(assessments: AssessmentData[]): Record<string, unknown>[] {
+  const opportunities: Record<string, unknown>[] = [];
+  
+  if (assessments.length === 0) {
   return [
     {
-      opportunity: 'Leverage Data Science expertise to improve other personas',
+        opportunity: 'Complete initial assessments to identify improvement opportunities',
+        potential: 'high',
+        effort: 'low',
+        impact: 'Enable data-driven opportunity identification',
+        confidence: 90
+      }
+    ];
+  }
+
+  // Calculate performance metrics
+  const totalAssessments = assessments.length;
+  const completedAssessments = assessments.filter(a => a.status === 'completed').length;
+  const averageScore = assessments.reduce((sum, a) => sum + (a.currentScore || 0), 0) / totalAssessments;
+  const completionRate = (completedAssessments / totalAssessments) * 100;
+
+  // Analyze persona performance for opportunities
+  const personaStats = new Map<string, { count: number; avgScore: number; completionRate: number }>();
+  assessments.forEach(assessment => {
+    const personaId = assessment.personaId || 'unknown';
+    if (!personaStats.has(personaId)) {
+      personaStats.set(personaId, { count: 0, avgScore: 0, completionRate: 0 });
+    }
+    const stats = personaStats.get(personaId)!;
+    stats.count++;
+    stats.avgScore += assessment.currentScore || 0;
+    if (assessment.status === 'completed') {
+      stats.completionRate++;
+    }
+  });
+
+  // Calculate persona averages and identify high performers
+  const highPerformers: Array<{persona: string, avgScore: number, completionRate: number}> = [];
+  personaStats.forEach((stats, personaId) => {
+    stats.avgScore = stats.avgScore / stats.count;
+    stats.completionRate = (stats.completionRate / stats.count) * 100;
+    
+    if (stats.avgScore > averageScore + 15 && stats.completionRate > 80) {
+      highPerformers.push({
+        persona: personaId,
+        avgScore: stats.avgScore,
+        completionRate: stats.completionRate
+      });
+    }
+  });
+
+  // Knowledge sharing opportunities from high performers
+  if (highPerformers.length > 0) {
+    const bestPerformer = highPerformers.sort((a, b) => b.avgScore - a.avgScore)[0];
+    opportunities.push({
+      opportunity: `Leverage ${bestPerformer.persona} expertise to improve other personas`,
       potential: 'high',
       effort: 'medium',
-      impact: 'Improve overall scores by 10-15%',
-    },
-    {
-      opportunity: 'Implement automated compliance checking',
+      impact: `Improve overall scores by ${Math.min(20, (bestPerformer.avgScore - averageScore) * 0.4).toFixed(0)}%`,
+      confidence: 80,
+      timeframe: '60-90 days',
+      details: `${bestPerformer.persona} performing at ${bestPerformer.avgScore.toFixed(1)}% vs ${averageScore.toFixed(1)}% average`,
+      roi: 'High - Knowledge transfer can quickly improve underperforming areas'
+    });
+  }
+
+  // Automation opportunities
+  if (totalAssessments > 10) {
+    const automationPotential = Math.min(60, (totalAssessments * 5) + (averageScore < 70 ? 20 : 0));
+    opportunities.push({
+      opportunity: 'Implement automated compliance monitoring and reporting',
       potential: 'high',
       effort: 'high',
-      impact: 'Reduce manual effort by 40%',
-    },
-    {
-      opportunity: 'Create persona-specific training programs',
+      impact: `Reduce manual assessment effort by ${automationPotential}%`,
+      confidence: 85,
+      timeframe: '90-120 days',
+      details: `Scale automation benefits across ${totalAssessments} assessments`,
+      roi: 'High - Significant time savings and consistency improvements'
+    });
+  }
+
+  // Cross-functional collaboration opportunities
+  if (personaStats.size > 2) {
+    const personaScores = Array.from(personaStats.values()).map(s => s.avgScore);
+    const scoreVariance = Math.max(...personaScores) - Math.min(...personaScores);
+    
+    if (scoreVariance > 20) {
+      opportunities.push({
+        opportunity: 'Establish cross-functional compliance excellence program',
       potential: 'medium',
       effort: 'medium',
-      impact: 'Improve expertise gaps by 25%',
-    },
-  ];
+        impact: `Reduce performance variance by ${Math.min(40, scoreVariance * 0.5).toFixed(0)}%`,
+        confidence: 75,
+        timeframe: '60 days',
+        details: `Current variance: ${scoreVariance.toFixed(1)} percentage points between personas`,
+        roi: 'Medium - Improves consistency and knowledge sharing'
+      });
+    }
+  }
+
+  // Therapeutic area optimization opportunities
+  const therapyStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.therapeuticAreas?.forEach((therapy: any) => {
+      if (!therapyStats.has(therapy.name)) {
+        therapyStats.set(therapy.name, { count: 0, avgScore: 0 });
+      }
+      const stats = therapyStats.get(therapy.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (therapyStats.size > 1) {
+    const therapyPerformance = Array.from(therapyStats.entries())
+      .map(([name, stats]) => ({
+        therapy: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore);
+
+    const bestTherapy = therapyPerformance[0];
+    const worstTherapy = therapyPerformance[therapyPerformance.length - 1];
+    
+    if (bestTherapy.avgScore > worstTherapy.avgScore + 20) {
+      opportunities.push({
+        opportunity: `Apply ${bestTherapy.therapy} compliance framework to ${worstTherapy.therapy}`,
+        potential: 'medium',
+        effort: 'medium',
+        impact: `Improve ${worstTherapy.therapy} scores by ${Math.min(30, bestTherapy.avgScore - worstTherapy.avgScore).toFixed(0)}%`,
+        confidence: 70,
+        timeframe: '90 days',
+        details: `${bestTherapy.therapy} at ${bestTherapy.avgScore.toFixed(1)}% vs ${worstTherapy.therapy} at ${worstTherapy.avgScore.toFixed(1)}%`,
+        roi: 'Medium - Framework transfer can improve underperforming areas'
+      });
+    }
+  }
+
+  // AI Model optimization opportunities
+  const aiModelStats = new Map<string, { count: number; avgScore: number }>();
+  assessments.forEach(assessment => {
+    assessment.aiModelTypes?.forEach((model: any) => {
+      if (!aiModelStats.has(model.name)) {
+        aiModelStats.set(model.name, { count: 0, avgScore: 0 });
+      }
+      const stats = aiModelStats.get(model.name)!;
+      stats.count++;
+      stats.avgScore += assessment.currentScore || 0;
+    });
+  });
+
+  if (aiModelStats.size > 1) {
+    const modelPerformance = Array.from(aiModelStats.entries())
+      .map(([name, stats]) => ({
+        model: name,
+        avgScore: stats.avgScore / stats.count,
+        count: stats.count
+      }))
+      .sort((a, b) => b.avgScore - a.avgScore);
+
+    const bestModel = modelPerformance[0];
+    const worstModel = modelPerformance[modelPerformance.length - 1];
+    
+    if (bestModel.avgScore > worstModel.avgScore + 25) {
+      opportunities.push({
+        opportunity: `Extend ${bestModel.model} compliance protocols to ${worstModel.model}`,
+        potential: 'medium',
+        effort: 'medium',
+        impact: `Improve ${worstModel.model} compliance by ${Math.min(35, bestModel.avgScore - worstModel.avgScore).toFixed(0)}%`,
+        confidence: 75,
+        timeframe: '75 days',
+        details: `${bestModel.model} at ${bestModel.avgScore.toFixed(1)}% vs ${worstModel.model} at ${worstModel.avgScore.toFixed(1)}%`,
+        roi: 'Medium - Protocol standardization improves consistency'
+      });
+    }
+  }
+
+  // Process optimization opportunities
+  if (completionRate < 90) {
+    const processImprovementPotential = 100 - completionRate;
+    opportunities.push({
+      opportunity: 'Optimize assessment workflow and user experience',
+      potential: 'medium',
+      effort: 'medium',
+      impact: `Increase completion rate by ${Math.min(25, processImprovementPotential * 0.6).toFixed(0)} percentage points`,
+      confidence: 80,
+      timeframe: '45 days',
+      details: `Current completion rate: ${completionRate.toFixed(1)}%`,
+      roi: 'High - Process improvements directly impact compliance posture'
+    });
+  }
+
+  // Technology enhancement opportunities
+  if (averageScore < 80) {
+    const techEnhancementPotential = 80 - averageScore;
+    opportunities.push({
+      opportunity: 'Implement AI-powered compliance assistance and guidance',
+      potential: 'high',
+      effort: 'high',
+      impact: `Improve assessment scores by ${Math.min(30, techEnhancementPotential * 0.7).toFixed(0)} percentage points`,
+      confidence: 70,
+      timeframe: '120-150 days',
+      details: `Current average score: ${averageScore.toFixed(1)}%`,
+      roi: 'High - AI assistance can significantly improve compliance outcomes'
+    });
+  }
+
+  // Training and development opportunities
+  const lowPerformers = Array.from(personaStats.entries())
+    .filter(([, stats]) => stats.avgScore < averageScore - 15)
+    .sort(([,a], [,b]) => a.avgScore - b.avgScore);
+
+  if (lowPerformers.length > 0) {
+    const worstPerformer = lowPerformers[0];
+    const improvementPotential = averageScore - worstPerformer[1].avgScore;
+    
+    opportunities.push({
+      opportunity: `Develop specialized training program for ${worstPerformer[0]} persona`,
+      potential: 'medium',
+      effort: 'medium',
+      impact: `Improve ${worstPerformer[0]} performance by ${Math.min(25, improvementPotential * 0.6).toFixed(0)}%`,
+      confidence: 75,
+      timeframe: '60 days',
+      details: `${worstPerformer[0]} at ${worstPerformer[1].avgScore.toFixed(1)}% vs ${averageScore.toFixed(1)}% average`,
+      roi: 'Medium - Targeted training addresses specific skill gaps'
+    });
+  }
+
+  // Data-driven insights opportunities
+  if (totalAssessments > 5) {
+    opportunities.push({
+      opportunity: 'Implement predictive compliance analytics and early warning system',
+      potential: 'high',
+      effort: 'high',
+      impact: 'Prevent compliance issues before they become critical',
+      confidence: 65,
+      timeframe: '90-120 days',
+      details: `Analyze patterns across ${totalAssessments} assessments to predict risks`,
+      roi: 'High - Preventive measures reduce regulatory risk and costs'
+    });
+  }
+
+  return opportunities.slice(0, 8); // Return top 8 opportunities
 }

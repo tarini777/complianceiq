@@ -39,7 +39,7 @@ start_frontend() {
     fi
 }
 
-# Function to check database
+# Function to check and setup database
 check_database() {
     echo "🗄️  Checking PostgreSQL database..."
     
@@ -49,14 +49,49 @@ check_database() {
         # Check if database exists
         if psql -lqt | cut -d \| -f 1 | grep -qw complianceiq; then
             echo "✅ Database 'complianceiq' exists"
+            
+            # Check if database has data
+            echo "🔍 Checking database content..."
+            PERSONA_COUNT=$(psql -d complianceiq -t -c "SELECT COUNT(*) FROM personas;" 2>/dev/null | tr -d ' ' || echo "0")
+            SECTION_COUNT=$(psql -d complianceiq -t -c "SELECT COUNT(*) FROM sections;" 2>/dev/null | tr -d ' ' || echo "0")
+            
+            if [ "$PERSONA_COUNT" -eq 0 ] || [ "$SECTION_COUNT" -eq 0 ]; then
+                echo "⚠️  Database is empty - seeding with data..."
+                seed_database
+            else
+                echo "✅ Database has data: $PERSONA_COUNT personas, $SECTION_COUNT sections"
+            fi
         else
             echo "⚠️  Database 'complianceiq' not found"
             echo "   Run: createdb complianceiq"
+            return 1
         fi
     else
         echo "⚠️  PostgreSQL not found"
         echo "   Install with: brew install postgresql"
+        return 1
     fi
+}
+
+# Function to seed database
+seed_database() {
+    echo "🌱 Seeding database with pharmaceutical compliance data..."
+    
+    # Run Prisma migrations
+    echo "📊 Running database migrations..."
+    npx prisma migrate deploy
+    
+    # Seed system configuration
+    echo "⚙️  Seeding system configuration..."
+    node prisma/seed-system-config.js
+    
+    # Seed basic data (try different seed files)
+    echo "📋 Seeding assessment data..."
+    if [ -f "prisma/seed-questions-direct.js" ]; then
+        node prisma/seed-questions-direct.js
+    fi
+    
+    echo "✅ Database seeding completed"
 }
 
 # Function to check system status

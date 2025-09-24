@@ -139,12 +139,32 @@ export async function POST(request: NextRequest) {
     let whereClause: any = {};
     let includeClause: any = {
       personaMappings: {
-        where: {
-          personaId,
-          ...(subPersonaId && { subPersonaId }),
-        },
+        where: subPersonaId 
+          ? {
+              // If specialization is selected: filter by persona AND specialization
+              personaId,
+              subPersonaId,
+            }
+          : {
+              // If no specialization: show ALL mappings for the primary persona
+              personaId,
+            }
       },
       questions: {
+        where: {
+          personaMappings: {
+            some: subPersonaId 
+              ? {
+                  // If specialization is selected: filter by persona AND specialization
+                  personaId,
+                  subPersonaId,
+                }
+              : {
+                  // If no specialization: show ALL questions for the primary persona
+                  personaId,
+                }
+          },
+        },
         include: {
           therapyConditions: {
             include: {
@@ -155,6 +175,7 @@ export async function POST(request: NextRequest) {
           therapyOverlays: true,
           aiModelOverlays: true,
           deploymentOverlays: true,
+          personaMappings: true,
         },
       },
       collaborationStates: true,
@@ -165,12 +186,18 @@ export async function POST(request: NextRequest) {
       scoringRules: true,
     };
 
-    // Filter sections by persona mappings for all users
+    // Filter sections by persona mappings - simple logic
     whereClause.personaMappings = {
-      some: {
-        personaId,
-        ...(subPersonaId && { subPersonaId }),
-      },
+      some: subPersonaId 
+        ? {
+            // If specialization is selected: filter by persona AND specialization
+            personaId,
+            subPersonaId,
+          }
+        : {
+            // If no specialization: show ALL sections for the primary persona
+            personaId,
+          }
     };
 
     console.log(`[${requestId}] Querying sections with sophisticated filtering:`, JSON.stringify(whereClause, null, 2));
@@ -186,22 +213,37 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] Found ${sections.length} sections for persona mapping`);
 
     // Apply sophisticated filtering logic
-    const filteredSections = sections.map(section => {
+    const filteredSections = sections.map((section, index) => {
       // Apply therapy-specific filtering
       let filteredQuestions: any[] = section.questions || [];
       
       if (therapeuticAreaId) {
+        // Get the therapeutic area name for matching
+        const therapeuticAreaName = therapeuticArea?.name?.toLowerCase();
+        
         // Filter questions based on therapy-specific conditions
         filteredQuestions = filteredQuestions.filter((question: any) => {
-          // Check if question has therapy-specific conditions
+          // Check if question has therapy-specific conditions in JSON field
+          if (question.therapySpecificConditions) {
+            const therapyConditions = question.therapySpecificConditions;
+            const questionTherapyArea = therapyConditions.therapeuticArea?.toLowerCase();
+            
+            // Match by therapeutic area name
+            if (therapeuticAreaName && questionTherapyArea) {
+              return therapeuticAreaName.includes(questionTherapyArea) || 
+                     questionTherapyArea.includes(therapeuticAreaName);
+            }
+          }
+          
+          // Also check therapy conditions relationship table (if it exists)
           if (question.therapyConditions && question.therapyConditions.length > 0) {
             return question.therapyConditions.some((condition: any) => 
               condition.therapeuticAreaId === therapeuticAreaId
             );
           }
-          // Only include questions that are specifically relevant to the therapeutic area
-          // Generic questions without therapy conditions should not appear
-          return false;
+          
+          // Include general questions that don't have specific therapy requirements
+          return true;
         });
         
         // Add therapy-specific overlay questions
@@ -287,6 +329,8 @@ export async function POST(request: NextRequest) {
 
       return {
         ...section,
+        // Override sectionNumber with sequential numbering for filtered results
+        sectionNumber: index + 1,
         questions: filteredQuestions,
         // Calculate enhanced scoring with overlays
         enhancedPoints: section.basePoints + 

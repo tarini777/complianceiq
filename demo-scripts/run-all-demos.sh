@@ -16,8 +16,8 @@ echo ""
 
 # Check if application is running
 echo "🔍 Checking application status..."
-if curl -s "http://localhost:3001/api/assessment/health-check" > /dev/null; then
-    echo "✅ Application is running on http://localhost:3001"
+if curl -s "http://localhost:3000/api/assessment/health-check" > /dev/null; then
+    echo "✅ Application is running on http://localhost:3000"
 else
     echo "❌ Application not running. Please start with: npm run dev"
     exit 1

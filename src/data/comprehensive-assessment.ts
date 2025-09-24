@@ -47,7 +47,7 @@ export interface AssessmentSection {
 export interface AssessmentQuestion {
   id: string;
   text: string;
-  type: 'boolean' | 'text' | 'radio' | 'checkbox' | 'rating';
+  questionType: 'boolean' | 'text' | 'radio' | 'checkbox' | 'rating' | 'scale_1_5';
   points: number;
   isBlocker: boolean;
   category: string;
@@ -55,6 +55,20 @@ export interface AssessmentQuestion {
   responsibleRole: string[];
   options?: QuestionOption[];
   validationCriteria: Record<string, unknown>;
+  // Scale question support
+  scaleLabels?: {
+    1: string;
+    2: string;
+    3: string;
+    4: string;
+    5: string;
+  };
+  scaleConfiguration?: {
+    min: number;
+    max: number;
+    step: number;
+    defaultLabels: boolean;
+  };
 }
 
 export interface QuestionOption {
@@ -277,35 +291,87 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'reg-001',
         text: 'Are your existing AI system outputs production-configured and validated for immediate therapy-specific FDA submission?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['FDA validation documentation', 'Therapy-specific compliance certificates'],
         responsibleRole: ['Regulatory Affairs Director', 'Quality Assurance Manager'],
-        validationCriteria: { required: true, documentation: 'FDA submission-ready' }
+        validationCriteria: { required: true, documentation: 'FDA submission-ready' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       },
       {
         id: 'reg-002',
         text: 'Is your current automated regulatory documentation generation production-configured for your therapeutic area requirements?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Automated documentation system', 'Therapy-specific templates'],
         responsibleRole: ['Regulatory Affairs Director', 'Documentation Specialist'],
-        validationCriteria: { required: true, automation: 'production-ready' }
+        validationCriteria: { required: true, automation: 'production-ready' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       },
       {
         id: 'reg-003',
         text: 'Is your PCCP (Predetermined Change Control Plan) production-implemented and FDA-approved for your specific AI model types?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['PCCP documentation', 'FDA approval letters'],
         responsibleRole: ['Regulatory Affairs Director', 'AI/ML Engineer'],
-        validationCriteria: { required: true, approval: 'FDA-approved' }
+        validationCriteria: { required: true, approval: 'FDA-approved' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {
@@ -313,37 +379,76 @@ export const assessmentSections: AssessmentSection[] = [
         {
           id: 'reg-onc-001',
           text: 'Are your AI outputs production-formatted and validated for FDA Oncology Center of Excellence requirements?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 4,
           isBlocker: false,
           category: 'Oncology-Specific',
           evidenceRequired: ['FDA Oncology Center validation', 'Oncology-specific compliance documentation'],
           responsibleRole: ['Oncology Medical Director', 'Regulatory Affairs Director'],
-          validationCriteria: { therapy: 'oncology', fdaCenter: 'Oncology Center of Excellence' }
+          validationCriteria: { therapy: 'oncology', fdaCenter: 'Oncology Center of Excellence' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         },
         {
           id: 'reg-onc-002',
           text: 'Is your real-world evidence generation production-configured for oncology endpoints (OS, PFS, ORR, biomarkers)?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 4,
           isBlocker: false,
           category: 'Oncology-Specific',
           evidenceRequired: ['Oncology endpoint validation', 'Biomarker qualification documentation'],
           responsibleRole: ['Oncology Clinical Director', 'Real-World Evidence Manager'],
-          validationCriteria: { endpoints: ['OS', 'PFS', 'ORR', 'biomarkers'], validation: 'production-ready' }
+          validationCriteria: { endpoints: ['OS', 'PFS', 'ORR', 'biomarkers'], validation: 'production-ready' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         }
       ],
       cardiology: [
         {
           id: 'reg-card-001',
           text: 'Are your AI models production-validated for cardiovascular endpoint assessment (MACE, mortality reduction)?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 4,
           isBlocker: false,
           category: 'Cardiology-Specific',
           evidenceRequired: ['Cardiovascular endpoint validation', 'MACE assessment documentation'],
           responsibleRole: ['Cardiology Medical Director', 'Clinical Validation Manager'],
-          validationCriteria: { endpoints: ['MACE', 'mortality'], validation: 'production-ready' }
+          validationCriteria: { endpoints: ['MACE', 'mortality'], validation: 'production-ready' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         }
       ]
     },
@@ -352,26 +457,52 @@ export const assessmentSections: AssessmentSection[] = [
         {
           id: 'reg-genai-001',
           text: 'Are your hallucination detection systems production-deployed for clinical content generation?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 3,
           isBlocker: false,
           category: 'GenAI-Specific',
           evidenceRequired: ['Hallucination detection system', 'Clinical content validation protocols'],
           responsibleRole: ['AI/ML Engineer', 'Clinical Content Manager'],
-          validationCriteria: { detection: 'production-deployed', accuracy: '>95%' }
+          validationCriteria: { detection: 'production-deployed', accuracy: '>95%' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         }
       ],
       'agentic-ai': [
         {
           id: 'reg-agent-001',
           text: 'Are your agent decision audit trails production-deployed meeting FDA transparency requirements?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 4,
           isBlocker: false,
           category: 'Agentic AI-Specific',
           evidenceRequired: ['Agent audit trail system', 'FDA transparency compliance documentation'],
           responsibleRole: ['AI/ML Engineer', 'Compliance Officer'],
-          validationCriteria: { auditTrails: 'production-deployed', fdaCompliance: 'transparency-requirements' }
+          validationCriteria: { auditTrails: 'production-deployed', fdaCompliance: 'transparency-requirements' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         }
       ]
     },
@@ -380,13 +511,26 @@ export const assessmentSections: AssessmentSection[] = [
         {
           id: 'reg-clinical-001',
           text: 'Are your clinical decision support AI systems production-configured for real-time regulatory compliance?',
-          type: 'boolean',
+          questionType: 'scale_1_5',
           points: 3,
           isBlocker: false,
           category: 'Clinical Decision Support',
           evidenceRequired: ['Real-time compliance monitoring', 'Clinical decision validation'],
           responsibleRole: ['Clinical Operations Director', 'Regulatory Affairs Manager'],
-          validationCriteria: { realTime: true, compliance: 'regulatory-approved' }
+          validationCriteria: { realTime: true, compliance: 'regulatory-approved' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
         }
       ]
     }
@@ -402,35 +546,74 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'clin-001',
         text: 'Is your existing data lake production-configured to automatically generate clinical study reports meeting ICH E3 standards?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['ICH E3 compliance documentation', 'Automated report generation system'],
         responsibleRole: ['Clinical Development VP', 'Data Engineering Lead'],
-        validationCriteria: { ichCompliance: 'E3-standards', automation: 'production-ready' }
+        validationCriteria: { ichCompliance: 'E3-standards', automation: 'production-ready' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       },
       {
         id: 'clin-002',
         text: 'Are your AI-generated clinical endpoints production-configured and automatically formatted for regulatory submissions?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Clinical endpoint validation', 'Automated formatting system'],
         responsibleRole: ['Clinical Development VP', 'Regulatory Affairs Manager'],
-        validationCriteria: { endpoints: 'production-configured', formatting: 'automated' }
+        validationCriteria: { endpoints: 'production-configured', formatting: 'automated' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       },
       {
         id: 'clin-003',
         text: 'Is your external validation system production-deployed across multiple geographic regions and clinical sites?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Multi-site validation documentation', 'Geographic deployment certificates'],
         responsibleRole: ['Clinical Operations Director', 'Global Clinical Manager'],
-        validationCriteria: { deployment: 'multi-region', sites: 'multiple-clinical-sites' }
+        validationCriteria: { deployment: 'multi-region', sites: 'multiple-clinical-sites' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -448,24 +631,50 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'safety-001',
         text: 'Are your existing bias detection algorithms production-configured for therapy-specific demographic considerations?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Bias detection system documentation', 'Demographic validation protocols'],
         responsibleRole: ['Data Science/AI Head', 'Pharmacovigilance Director'],
-        validationCriteria: { biasDetection: 'production-configured', demographics: 'therapy-specific' }
+        validationCriteria: { biasDetection: 'production-configured', demographics: 'therapy-specific' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       },
       {
         id: 'safety-002',
         text: 'Is your current safety monitoring system production-configured for therapy-specific adverse events?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Safety monitoring system', 'Therapy-specific AE protocols'],
         responsibleRole: ['Pharmacovigilance Director', 'Clinical Safety Manager'],
-        validationCriteria: { safetyMonitoring: 'production-configured', adverseEvents: 'therapy-specific' }
+        validationCriteria: { safetyMonitoring: 'production-configured', adverseEvents: 'therapy-specific' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -483,13 +692,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'human-001',
         text: 'Are your existing human override capabilities production-configured and extensively tested across all AI system components?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Human override system documentation', 'Extensive testing reports'],
         responsibleRole: ['Medical Affairs VP', 'Clinical Operations Director'],
-        validationCriteria: { overrideCapabilities: 'production-configured', testing: 'extensive' }
+        validationCriteria: { overrideCapabilities: 'production-configured', testing: 'extensive' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -507,13 +729,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'explain-001',
         text: 'Is your decision pathway documentation production-configured for all AI recommendations?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Decision pathway documentation system', 'AI recommendation tracking'],
         responsibleRole: ['Medical Affairs VP', 'Data Science/AI Head'],
-        validationCriteria: { documentation: 'production-configured', recommendations: 'all-ai-decisions' }
+        validationCriteria: { documentation: 'production-configured', recommendations: 'all-ai-decisions' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -531,13 +766,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'tech-001',
         text: 'Are your existing real-time data pipelines production-configured for continuous clinical streams?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Real-time data pipeline documentation', 'Clinical stream processing validation'],
         responsibleRole: ['Chief Technology Officer', 'IT Infrastructure Head'],
-        validationCriteria: { pipelines: 'production-configured', streams: 'continuous-clinical' }
+        validationCriteria: { pipelines: 'production-configured', streams: 'continuous-clinical' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -555,13 +803,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'org-001',
         text: 'Is your multidisciplinary team production-configured with support capabilities for your therapeutic area?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Team configuration documentation', 'Therapy-specific support capabilities'],
         responsibleRole: ['Program Director', 'Executive Sponsor'],
-        validationCriteria: { team: 'production-configured', capabilities: 'therapy-specific' }
+        validationCriteria: { team: 'production-configured', capabilities: 'therapy-specific' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -579,13 +840,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'obs-001',
         text: 'Is your synthetic data generation production-configured for model enhancement?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Synthetic data generation system', 'Model enhancement protocols'],
         responsibleRole: ['Data Science/AI Head', 'Data Engineering Lead'],
-        validationCriteria: { syntheticData: 'production-configured', enhancement: 'model-improvement' }
+        validationCriteria: { syntheticData: 'production-configured', enhancement: 'model-improvement' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -603,13 +877,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'rights-001',
         text: 'Are your existing 3rd party data agreements production-validated to explicitly permit AI model training for your specific therapeutic applications?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Third-party data agreements', 'AI training permissions documentation'],
         responsibleRole: ['Legal Counsel - IP Specialist', 'Regulatory Affairs Director'],
-        validationCriteria: { agreements: 'production-validated', permissions: 'explicit-ai-training' }
+        validationCriteria: { agreements: 'production-validated', permissions: 'explicit-ai-training' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -627,13 +914,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'class-001',
         text: 'Is your existing automated data classification engine production-configured across all data sources for your therapeutic area?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Automated classification engine', 'Therapy-specific configuration documentation'],
         responsibleRole: ['Data Architecture Lead', 'Privacy Officer'],
-        validationCriteria: { classification: 'production-configured', coverage: 'all-data-sources' }
+        validationCriteria: { classification: 'production-configured', coverage: 'all-data-sources' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -651,13 +951,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'storage-001',
         text: 'Is your comprehensive AI output storage production-configured for all your production models?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 4,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['AI output storage system', 'Production model coverage documentation'],
         responsibleRole: ['Data Architecture Lead', 'Regulatory Affairs Director'],
-        validationCriteria: { storage: 'production-configured', coverage: 'all-production-models' }
+        validationCriteria: { storage: 'production-configured', coverage: 'all-production-models' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},
@@ -675,13 +988,26 @@ export const assessmentSections: AssessmentSection[] = [
       {
         id: 'ops-001',
         text: 'Is your comprehensive model versioning production-configured across all AI components?',
-        type: 'boolean',
+        questionType: 'scale_1_5',
         points: 5,
         isBlocker: true,
         category: 'Production Blocker',
         evidenceRequired: ['Model versioning system', 'AI component coverage documentation'],
         responsibleRole: ['Data Science/AI Head', 'DevOps Lead'],
-        validationCriteria: { versioning: 'production-configured', coverage: 'all-ai-components' }
+        validationCriteria: { versioning: 'production-configured', coverage: 'all-ai-components' },
+        scaleLabels: {
+          1: "Not implemented",
+          2: "Partially implemented", 
+          3: "Mostly implemented",
+          4: "Well implemented",
+          5: "Fully implemented"
+        },
+        scaleConfiguration: {
+          min: 1,
+          max: 5,
+          step: 1,
+          defaultLabels: false
+        }
       }
     ],
     therapySpecificQuestions: {},

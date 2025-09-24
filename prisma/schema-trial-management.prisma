@@ -1,0 +1,323 @@
+// Trial Management Schema Extension for ComplianceIQ
+// This extends the existing schema with comprehensive trial management capabilities
+
+// Trial Cohorts and Management
+model Trial {
+  id                String      @id @default(cuid())
+  name              String
+  description       String?
+  trialType         String      // "beta", "pilot", "evaluation", "demo"
+  status            String      // "planning", "active", "paused", "completed", "cancelled"
+  startDate         DateTime?
+  endDate           DateTime?
+  maxParticipants   Int?
+  currentParticipants Int       @default(0)
+  
+  // Trial Configuration
+  features          String[]    // Features enabled for this trial
+  limitations       String[]    // Limitations or restrictions
+  dataRetention     Int?        // Days to retain trial data
+  privacyLevel      String      // "public", "private", "confidential"
+  
+  // Trial Settings
+  allowSelfRegistration Boolean  @default(true)
+  requireApproval      Boolean   @default(false)
+  sendNotifications    Boolean   @default(true)
+  trackAnalytics       Boolean   @default(true)
+  
+  // Trial Metadata
+  createdBy         String
+  createdByEmail    String
+  organizationId    String?
+  tags              String[]
+  notes             String?
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  participants      TrialParticipant[]
+  invitations       TrialInvitation[]
+  feedback          TrialFeedback[]
+  analytics         TrialAnalytics[]
+  sessions          TrialSession[]
+  
+  @@map("trials")
+}
+
+model TrialParticipant {
+  id                String      @id @default(cuid())
+  trialId           String
+  email             String
+  name              String?
+  organization      String?
+  role              String?
+  
+  // Participation Status
+  status            String      // "invited", "registered", "active", "paused", "completed", "dropped"
+  invitationDate    DateTime?
+  registrationDate  DateTime?
+  firstAccessDate   DateTime?
+  lastAccessDate    DateTime?
+  
+  // Trial Experience
+  persona           String?     // Selected persona for assessment
+  subPersona        String?
+  therapeuticArea   String?
+  companyType       String?
+  
+  // Engagement Metrics
+  sessionsCount     Int         @default(0)
+  assessmentsCompleted Int      @default(0)
+  timeSpent         Int         @default(0) // Total time in minutes
+  featuresUsed      String[]
+  
+  // Feedback and Rating
+  overallRating     Int?        // 1-5 scale
+  likelihoodToRecommend Int?    // 1-10 scale (NPS)
+  feedbackText      String?
+  
+  // Metadata
+  source            String?     // How they heard about the trial
+  referralCode      String?
+  customFields      Json?       // Additional custom data
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  sessions          TrialSession[]
+  feedback          TrialFeedback[]
+  
+  @@unique([trialId, email])
+  @@map("trial_participants")
+}
+
+model TrialInvitation {
+  id                String      @id @default(cuid())
+  trialId           String
+  email             String
+  name              String?
+  organization      String?
+  
+  // Invitation Details
+  invitationToken   String      @unique
+  invitationUrl     String
+  invitedBy         String
+  invitedByEmail    String
+  
+  // Status
+  status            String      // "sent", "delivered", "opened", "accepted", "expired"
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  acceptedAt        DateTime?
+  expiredAt         DateTime?
+  
+  // Message
+  subject           String?
+  message           String?
+  personalMessage   String?
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  
+  @@unique([trialId, email])
+  @@map("trial_invitations")
+}
+
+model TrialSession {
+  id                String      @id @default(cuid())
+  trialId           String
+  participantId     String?
+  
+  // Session Details
+  sessionToken      String      @unique
+  startTime         DateTime
+  endTime           DateTime?
+  duration          Int?        // Duration in minutes
+  ipAddress         String?
+  userAgent         String?
+  deviceType        String?     // "desktop", "mobile", "tablet"
+  browser           String?
+  operatingSystem   String?
+  
+  // Session Activity
+  pagesVisited      String[]
+  featuresUsed      String[]
+  actionsPerformed  Int         @default(0)
+  assessmentsStarted Int        @default(0)
+  assessmentsCompleted Int      @default(0)
+  
+  // Performance Metrics
+  loadTime          Float?      // Average page load time
+  errorCount        Int         @default(0)
+  bounceRate        Boolean     @default(false)
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  participant       TrialParticipant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  
+  @@map("trial_sessions")
+}
+
+model TrialFeedback {
+  id                String      @id @default(cuid())
+  trialId           String
+  participantId     String?
+  
+  // Feedback Details
+  feedbackType      String      // "general", "feature", "bug", "suggestion", "rating"
+  category          String?     // "ui", "performance", "functionality", "support"
+  priority          String      // "low", "medium", "high", "critical"
+  
+  // Content
+  title             String
+  description       String
+  rating            Int?        // 1-5 scale
+  tags              String[]
+  
+  // Status
+  status            String      // "new", "acknowledged", "in_progress", "resolved", "closed"
+  assignedTo        String?
+  resolution        String?
+  resolvedAt        DateTime?
+  
+  // Attachments
+  attachments       String[]    // File URLs or references
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  participant       TrialParticipant? @relation(fields: [participantId], references: [id], onDelete: SetNull)
+  
+  @@map("trial_feedback")
+}
+
+model TrialAnalytics {
+  id                String      @id @default(cuid())
+  trialId           String
+  date              DateTime
+  
+  // Daily Metrics
+  newRegistrations  Int         @default(0)
+  activeUsers       Int         @default(0)
+  sessionsCount     Int         @default(0)
+  assessmentsCompleted Int      @default(0)
+  
+  // Engagement Metrics
+  avgSessionDuration Float      @default(0)
+  avgPagesPerSession Float      @default(0)
+  bounceRate        Float       @default(0)
+  
+  // Feature Usage
+  featureUsage      Json        // Feature usage statistics
+  personaUsage      Json        // Persona selection statistics
+  therapeuticAreaUsage Json     // Therapeutic area statistics
+  
+  // Performance Metrics
+  avgLoadTime       Float       @default(0)
+  errorRate         Float       @default(0)
+  satisfactionScore Float?      // Average satisfaction rating
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  
+  @@unique([trialId, date])
+  @@map("trial_analytics")
+}
+
+model TrialConfiguration {
+  id                String      @id @default(cuid())
+  trialId           String      @unique
+  
+  // Feature Flags
+  enableCollaboration Boolean   @default(true)
+  enableAnalytics     Boolean   @default(true)
+  enableRealTimeUpdates Boolean @default(true)
+  enableAskRexi        Boolean  @default(true)
+  enableRemediation    Boolean  @default(true)
+  
+  // Access Control
+  allowedPersonas      String[]
+  allowedTherapeuticAreas String[]
+  allowedCompanyTypes   String[]
+  maxTeamSize           Int     @default(10)
+  
+  // Customization
+  customBranding        Json?   // Custom colors, logos, etc.
+  welcomeMessage        String?
+  helpDocumentation     String?
+  supportContact        String?
+  
+  // Data and Privacy
+  dataRetentionDays     Int     @default(90)
+  allowDataExport       Boolean @default(false)
+  requireDataAgreement  Boolean @default(true)
+  
+  // Notifications
+  emailNotifications    Boolean @default(true)
+  inAppNotifications    Boolean @default(true)
+  reminderFrequency     String  @default("weekly") // "daily", "weekly", "monthly"
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  trial             Trial       @relation(fields: [trialId], references: [id], onDelete: Cascade)
+  
+  @@map("trial_configurations")
+}
+
+// Trial Templates for Quick Setup
+model TrialTemplate {
+  id                String      @id @default(cuid())
+  name              String
+  description       String?
+  category          String      // "pharma", "biotech", "medical_device", "general"
+  
+  // Template Configuration
+  features          String[]
+  limitations       String[]
+  maxParticipants   Int?
+  duration          Int?        // Trial duration in days
+  
+  // Default Settings
+  defaultPersonas   String[]
+  defaultTherapeuticAreas String[]
+  defaultConfiguration Json    // Default trial configuration
+  
+  // Usage Statistics
+  timesUsed         Int         @default(0)
+  lastUsedAt        DateTime?
+  
+  // Metadata
+  createdBy         String
+  isPublic          Boolean     @default(false)
+  tags              String[]
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@map("trial_templates")
+}

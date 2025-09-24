@@ -119,6 +119,9 @@ model DynamicQuestion {
   questionText              String
   questionType              String
   validationCriteria        Json?
+  // Scale question support
+  scaleLabels               Json?                      // Scale labels for 1-5 questions
+  scaleConfiguration        Json?                      // Scale configuration (min, max, step)
   evidenceRequired          String[]
   responsibleRoles          String[]
   therapySpecificConditions Json?
@@ -696,6 +699,7 @@ model Organization {
   roles                  Role[]
   teamPerformanceMetrics TeamPerformanceMetrics[]
   users                  User[]
+  trials                 Trial[]
 
   @@map("organizations")
 }
@@ -721,6 +725,13 @@ model User {
   sentimentAnalysis      SentimentAnalysis[]
   sentInvitations        SessionInvitation[]
   sessionParticipants    SessionParticipant[]
+  // Trial Management Relations
+  createdTrials          Trial[]                  @relation("TrialCreator")
+  trialParticipants      TrialParticipant[]
+  trialSessions          TrialSession[]
+  trialFeedback          TrialFeedback[]
+  resolvedFeedback       TrialFeedback[]          @relation("FeedbackResolver")
+  sentTrialInvitations   TrialInvitation[]
   organization           Organization             @relation(fields: [organizationId], references: [id])
   role                   Role                     @relation(fields: [roleId], references: [id])
 
@@ -1028,6 +1039,9 @@ model AssessmentQuestion {
   evidenceRequired    String[]
   responsibleRole     String[]
   validationCriteria  Json
+  // Scale question support
+  scaleLabels         Json?                      // Scale labels for 1-5 questions
+  scaleConfiguration  Json?                      // Scale configuration (min, max, step)
   assessmentSection   String
   source              String   @default("manual")
   createdAt           DateTime @default(now())
@@ -1036,4 +1050,165 @@ model AssessmentQuestion {
   @@index([assessmentSection])
   @@index([category])
   @@map("assessment_questions")
+}
+
+// Trial Management Models
+model Trial {
+  id                    String               @id @default(uuid())
+  name                  String
+  description           String?
+  status                String               @default("active")
+  startDate             DateTime?
+  endDate               DateTime?
+  maxParticipants       Int                  @default(100)
+  currentParticipants   Int                  @default(0)
+  organizationId        String
+  createdBy             String
+  trialType             String?              @default("standard")
+  allowSelfRegistration Boolean              @default(false)
+  createdByEmail        String?
+  features              String[]
+  limitations           String[]
+  privacyLevel          String?              @default("private")
+  requireApproval       Boolean              @default(false)
+  sendNotifications     Boolean              @default(true)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  participants          TrialParticipant[]
+  sessions              TrialSession[]
+  feedback              TrialFeedback[]
+  analytics             TrialAnalytics[]
+  configuration         TrialConfiguration?
+  invitations           TrialInvitation[]
+  organization          Organization         @relation(fields: [organizationId], references: [id])
+  creator               User                 @relation("TrialCreator", fields: [createdBy], references: [id])
+
+  @@map("trials")
+}
+
+model TrialParticipant {
+  id                    String               @id @default(uuid())
+  trialId               String
+  userId                String
+  email                 String?
+  name                  String?
+  status                String               @default("active")
+  joinedAt              DateTime             @default(now())
+  completedAt           DateTime?
+  overallRating         Int?
+  likelihoodToRecommend Int?
+  assessmentsCompleted  Int                  @default(0)
+  timeSpent             Int                  @default(0)
+  feedback              String?
+  sessionsCount         Int                  @default(0)
+  registrationDate      DateTime?            @default(now())
+  lastAccessDate        DateTime?
+  organization          String?
+  role                  String?              @default("participant")
+  invitationDate        DateTime?
+  source                String?
+  referralCode          String?
+  customFields          Json?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+  user                  User                 @relation(fields: [userId], references: [id])
+
+  @@unique([trialId, userId])
+  @@map("trial_participants")
+}
+
+model TrialSession {
+  id                    String               @id @default(uuid())
+  trialId               String
+  userId                String
+  sessionType           String
+  startTime             DateTime
+  endTime               DateTime?
+  duration              Int?
+  featuresUsed          String[]
+  loadTime              Int?
+  errorCount            Int                  @default(0)
+  pagesVisited          Int                  @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+  user                  User                 @relation(fields: [userId], references: [id])
+
+  @@map("trial_sessions")
+}
+
+model TrialFeedback {
+  id                    String               @id @default(uuid())
+  trialId               String
+  userId                String
+  feedbackType          String
+  rating                Int?
+  priority              String?
+  status                String               @default("open")
+  description           String
+  resolution            String?
+  resolvedBy            String?
+  resolvedAt            DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+  user                  User                 @relation(fields: [userId], references: [id])
+  resolver              User?                @relation("FeedbackResolver", fields: [resolvedBy], references: [id])
+
+  @@map("trial_feedback")
+}
+
+model TrialAnalytics {
+  id                    String               @id @default(uuid())
+  trialId               String
+  metricType            String
+  metricValue           Float
+  metadata              Json?
+  date                  DateTime             @default(now())
+  activeUsers           Int?
+  recordedAt            DateTime             @default(now())
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+
+  @@map("trial_analytics")
+}
+
+model TrialConfiguration {
+  id                    String               @id @default(uuid())
+  trialId               String               @unique
+  configurationData     Json
+  enableCollaboration   Boolean              @default(true)
+  enableAnalytics       Boolean              @default(true)
+  enableRealTimeUpdates Boolean              @default(true)
+  enableAskRexi         Boolean              @default(true)
+  enableRemediation     Boolean              @default(true)
+  allowedPersonas       String[]
+  isActive              Boolean              @default(true)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+
+  @@map("trial_configurations")
+}
+
+model TrialInvitation {
+  id                    String               @id @default(uuid())
+  trialId               String
+  email                 String
+  name                  String?
+  role                  String               @default("participant")
+  status                String               @default("pending")
+  invitedBy             String
+  invitedByEmail        String?
+  organization          String?
+  invitationToken       String?
+  invitationUrl         String?
+  expiresAt             DateTime
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  trial                 Trial                @relation(fields: [trialId], references: [id])
+  inviter               User                 @relation(fields: [invitedBy], references: [id])
+
+  @@unique([trialId, email])
+  @@map("trial_invitations")
 }

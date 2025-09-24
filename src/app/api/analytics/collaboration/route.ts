@@ -6,6 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -20,7 +24,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (sessionId) where.sessionId = sessionId;
     if (organizationId) where.organizationId = organizationId;
     if (userId) where.userId = userId;

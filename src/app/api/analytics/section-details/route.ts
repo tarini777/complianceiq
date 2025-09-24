@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get('companyId');
+    // const companyId = searchParams.get('companyId');
     const dateRange = searchParams.get('dateRange') || '30d';
 
     // Get all assessments with their related data

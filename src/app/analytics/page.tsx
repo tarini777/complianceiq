@@ -27,8 +27,8 @@ import RemediationDashboard from '@/components/remediation/RemediationDashboard'
 
 const AnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('overview');
-  const [assessmentData, setAssessmentData] = useState<any>(null);
-  const [insights, setInsights] = useState<any[]>([]);
+  const [assessmentData, setAssessmentData] = useState<Record<string, unknown> | null>(null);
+  const [insights, setInsights] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -164,7 +164,7 @@ const AnalyticsPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Assessments</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {assessmentData?.overview?.totalAssessments || 0}
+                  {(assessmentData as any)?.overview?.totalAssessments || 0}
                 </p>
               </div>
               <FileText className="h-8 w-8 text-blue-600" />
@@ -178,7 +178,7 @@ const AnalyticsPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Average Score</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {assessmentData?.overview?.averageScore || 0}%
+                  {(assessmentData as any)?.overview?.averageScore || 0}%
                 </p>
               </div>
               <Target className="h-8 w-8 text-green-600" />
@@ -204,7 +204,7 @@ const AnalyticsPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Production Ready</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {assessmentData?.overview?.productionReadyRate || 0}%
+                  {(assessmentData as any)?.overview?.productionReadyRate || 0}%
                 </p>
               </div>
               <Shield className="h-8 w-8 text-purple-600" />

@@ -39,6 +39,8 @@ export interface Question {
   text: string;
   points: number;
   isBlocker: boolean;
+  isProductionBlocker?: boolean;
+  complexityPoints?: number;
   category: string;
   evidenceRequired: string[];
   responsibleRole: string[];
@@ -48,8 +50,22 @@ export interface Question {
   deploymentScenarioSpecific?: boolean;
   sectionTitle?: string;
   questionText?: string;
-  questionType?: 'boolean' | 'multiple_choice' | 'text' | 'file_upload';
+  questionType?: 'boolean' | 'multiple_choice' | 'text' | 'file_upload' | 'scale_1_5';
   validationCriteria?: Record<string, unknown>;
+  // Scale question support
+  scaleLabels?: {
+    1: string;
+    2: string;
+    3: string;
+    4: string;
+    5: string;
+  };
+  scaleConfiguration?: {
+    min: number;
+    max: number;
+    step: number;
+    defaultLabels?: boolean;
+  };
   responsibleRoles?: string[];
   guidance?: {
     explanation: string;
@@ -57,6 +73,34 @@ export interface Question {
     commonPitfalls: string[];
     regulatoryCitations: string[];
     examples: string[];
+  };
+}
+
+// Scale response types
+export interface ScaleResponse {
+  questionId: string;
+  responseValue: number; // 1-5
+  completionStatus: 'complete' | 'in_progress' | 'not_started';
+  timestamp: Date;
+  evidenceDocuments?: string[];
+  validatedBy?: string;
+  validationDate?: Date;
+}
+
+export interface ScaleQuestion extends Question {
+  questionType: 'scale_1_5';
+  scaleLabels: {
+    1: string;
+    2: string;
+    3: string;
+    4: string;
+    5: string;
+  };
+  scaleConfiguration: {
+    min: number;
+    max: number;
+    step: number;
+    defaultLabels: boolean;
   };
 }
 
@@ -86,6 +130,7 @@ export interface AssessmentResponse {
   responseValue: string | boolean | number | Record<string, unknown>;
   evidenceDocuments?: string[];
   completionStatus: 'complete' | 'in_progress' | 'not_started';
+  timestamp?: Date;
 }
 
 export interface AssessmentScore {

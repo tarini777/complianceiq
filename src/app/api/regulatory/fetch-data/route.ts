@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RegulatoryDataFetcher } from '@/lib/regulatory/dataFetcher';
 import { getCoverageStats } from '@/lib/regulatory/dataSources';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 export async function POST(request: NextRequest) {
   try {
     const { action, sourceId } = await request.json();

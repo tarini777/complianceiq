@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rulesIntelligence } from '@/lib/intelligence/rulesIntelligence';
 
+// Force dynamic rendering for this API route
+export const dynamic = "force-dynamic";
+
+
 /**
  * API endpoint for rules intelligence analysis
  */

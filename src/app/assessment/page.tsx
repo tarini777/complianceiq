@@ -123,57 +123,44 @@ const AssessmentPage: React.FC = () => {
       try {
         setPreviewLoading(true);
         
-        // Use the working simple progress API
-        const progressResponse = await fetch(`/api/assessment/simple-progress?personaId=${selectedPersona}`);
-        const progressResult = await progressResponse.json();
+        // Load real sections with questions from the API with comprehensive filtering
+        const aiModelTypesParam = selectedAiModelTypes.length > 0 ? selectedAiModelTypes.join(',') : '';
+        const deploymentScenariosParam = selectedDeploymentScenarios.length > 0 ? selectedDeploymentScenarios.join(',') : '';
         
-        if (progressResult.success) {
-          // Create a dynamic assessment preview with real data
+        const sectionsResponse = await fetch(`/api/assessment/sections?personaId=${selectedPersona}&subPersonaId=${selectedSubPersona}&therapeuticAreaId=${selectedTherapy}&aiModelTypes=${aiModelTypesParam}&deploymentScenarios=${deploymentScenariosParam}&includeQuestions=true`);
+        const sectionsResult = await sectionsResponse.json();
+        
+        if (sectionsResult.success) {
+          // Transform the API data into the expected format
+          const sections = sectionsResult.data.map((section: any) => ({
+            id: section.id,
+            title: section.title,
+            description: section.description || '',
+            questionCount: section.questions?.length || 0,
+            questions: section.questions || [],
+            status: 'pending',
+            points: section.basePoints || 0,
+            isCriticalBlocker: section.isCriticalBlocker || false
+          }));
+
+          // Calculate totals with production blocker analysis
+          const totalSections = sections.length;
+          const totalQuestions = sections.reduce((sum: number, section: any) => sum + section.questionCount, 0);
+          const totalPoints = sections.reduce((sum: number, section: any) => sum + section.points, 0);
+          const criticalSections = sections.filter((section: any) => section.isCriticalBlocker).length;
+          const productionBlockers = sections.reduce((sum: number, section: any) => sum + (section.stats?.productionBlockers || 0), 0);
+          const estimatedTimeMinutes = Math.ceil(totalQuestions * 2.5); // 2.5 minutes per question
+          
           const assessmentPreview = {
-            persona: progressResult.data.persona,
-            statistics: progressResult.data.statistics,
-            sections: [
-              {
-                id: 'data-observability',
-                title: 'Data Observability & Monitoring',
-                description: 'Monitoring and observability of data systems',
-                questionCount: 10,
-                status: 'pending',
-                points: 50
-              },
-              {
-                id: 'ai-model-validation',
-                title: 'AI Model Validation & Testing',
-                description: 'Validation and testing of AI models',
-                questionCount: 8,
-                status: 'pending',
-                points: 40
-              },
-              {
-                id: 'regulatory-compliance',
-                title: 'Regulatory Compliance',
-                description: 'Regulatory compliance requirements',
-                questionCount: 15,
-                status: 'pending',
-                points: 75
-              },
-              {
-                id: 'clinical-validation',
-                title: 'Clinical Validation & Evidence Generation',
-                description: 'Clinical validation and evidence generation',
-                questionCount: 12,
-                status: 'pending',
-                points: 60
-              },
-              {
-                id: 'ai-ethics',
-                title: 'AI Ethics & Responsible AI',
-                description: 'AI ethics and responsible AI practices',
-                questionCount: 9,
-                status: 'pending',
-                points: 45
-              }
-            ],
+            persona: { id: selectedPersona, name: 'Selected Persona' },
+            statistics: {
+              totalSections,
+              totalQuestions,
+              totalPoints,
+              criticalSections,
+              productionBlockers
+            },
+            sections,
             configuration: {
               personaId: selectedPersona,
               subPersonaId: selectedSubPersona,
@@ -182,14 +169,18 @@ const AssessmentPage: React.FC = () => {
               aiModelTypes: selectedAiModelTypes,
               deploymentScenarios: selectedDeploymentScenarios
             },
-            totalQuestions: 54,
-            totalPoints: 270,
-            estimatedTime: '2-3 hours'
+            totalSections,
+            totalQuestions,
+            totalPoints,
+            criticalSections,
+            productionBlockers,
+            estimatedTime: `${Math.ceil(estimatedTimeMinutes / 60)}-${Math.ceil(estimatedTimeMinutes / 60) + 1} hours`,
+            estimatedTimeMinutes
           };
           
           setAssessmentPreview(assessmentPreview);
         } else {
-          console.error('Failed to load assessment data:', progressResult.error);
+          console.error('Failed to load assessment sections:', sectionsResult.error);
         }
       } catch (error) {
         console.error('Error generating preview:', error);
@@ -228,8 +219,8 @@ const AssessmentPage: React.FC = () => {
     window.location.href = '/assessment-complete';
   };
 
-  const selectedPersonaData = personas.find(p => p.id === selectedPersona);
-  const selectedSubPersonaData = selectedPersonaData?.subPersonas.find(sp => sp.id === selectedSubPersona);
+  const selectedPersonaData = personas.find((p: any) => p.id === selectedPersona);
+  const selectedSubPersonaData = selectedPersonaData?.subPersonas.find((sp: any) => sp.id === selectedSubPersona);
 
   if (loading) {
     return (
@@ -338,7 +329,7 @@ const AssessmentPage: React.FC = () => {
                     <SelectValue placeholder="Select your primary role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {personas.map((persona) => (
+                    {personas.map((persona: any) => (
                       <SelectItem key={persona.id} value={persona.id}>
                         <div className="flex items-center justify-between w-full">
                           <span>{persona.name}</span>
@@ -542,41 +533,56 @@ const AssessmentPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">
-                        {assessmentPreview.assessment.totalSections}
+                        {assessmentPreview?.totalSections || 0}
                       </div>
                       <div className="text-sm text-gray-600">Sections</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">
-                        {assessmentPreview.assessment.totalQuestions}
+                        {assessmentPreview?.totalQuestions || 0}
                       </div>
                       <div className="text-sm text-gray-600">Questions</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">
-                        {assessmentPreview.assessment.totalPoints}
+                        {assessmentPreview?.totalPoints || 0}
                       </div>
                       <div className="text-sm text-gray-600">Total Points</div>
                     </div>
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">
-                        {assessmentPreview.assessment.estimatedTimeMinutes}
+                        {assessmentPreview?.estimatedTimeMinutes || 0}
                       </div>
                       <div className="text-sm text-gray-600">Minutes</div>
                     </div>
                   </div>
 
                   {/* Critical Sections */}
-                  {assessmentPreview.assessment.criticalSections > 0 && (
+                  {assessmentPreview?.criticalSections > 0 && (
                     <div className="p-3 bg-red-50 rounded-lg">
                       <div className="flex items-center gap-2 text-red-800">
                         <CheckCircle className="h-4 w-4" />
                         <span className="font-medium">
-                          {assessmentPreview.assessment.criticalSections} Critical Sections
+                          {assessmentPreview.criticalSections} Critical Sections
                         </span>
                       </div>
                       <p className="text-sm text-red-700 mt-1">
                         These sections must be completed for production readiness
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Production Blockers */}
+                  {assessmentPreview?.productionBlockers > 0 && (
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <div className="flex items-center gap-2 text-orange-800">
+                        <span className="text-lg">🚨</span>
+                        <span className="font-medium">
+                          {assessmentPreview.productionBlockers} Production Blockers
+                        </span>
+                      </div>
+                      <p className="text-sm text-orange-700 mt-1">
+                        These questions must be resolved before production deployment
                       </p>
                     </div>
                   )}
@@ -592,7 +598,12 @@ const AssessmentPage: React.FC = () => {
                             <Badge variant={section.isCriticalBlocker ? "destructive" : "secondary"}>
                               {section.isCriticalBlocker ? "Critical" : "Standard"}
                             </Badge>
-                            <span className="text-gray-500">{section.questions.length} questions</span>
+                            {section.stats?.productionBlockers > 0 && (
+                              <Badge variant="outline" className="text-orange-600 border-orange-300">
+                                🚨 {section.stats.productionBlockers} Blockers
+                              </Badge>
+                            )}
+                            <span className="text-gray-500">{section.questions?.length || 0} questions</span>
                           </div>
                         </div>
                       ))}
